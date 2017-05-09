@@ -1,0 +1,6 @@
+.idea
+vendor/
+k8guard-discover
+config.sh
+coverage.out
+output.txt

@@ -1,0 +1,39 @@
+package: k8guard-discover
+import:
+- package: k8s.io/client-go
+  version: =v2.0.0-alpha.1
+  subpackages:
+  - kubernetes
+  - pkg/api
+  - rest
+  - tools/clientcmd
+
+- package: github.com/pressly/chi
+  version: b206b0359be0c971fbfab2aa15307482f9c300f4
+  repo: https://github.com/pressly/chi.git
+  vcs: git
+  subpackages:
+  - middleware
+  - render
+
+- package: github.com/caarlos0/env
+  version: 9474f19b515f52326c7d197d2d097caa7fc7485e
+  repo: https://github.com/caarlos0/env.git
+  vcs: git
+
+- package: github.com/bradfitz/gomemcache
+  version: 1952afaa557dc08e8e0d89eafab110fb501c1a2b
+  subpackages:
+  - memcache
+
+- package: github.com/prometheus/client_golang
+  version: 738ed6c0b9b30ec936d4b74c1600ae76324efff5
+  subpackages:
+  - prometheus/promhttp
+
+- package: github.com/Sirupsen/logrus
+  version: v0.11.2
+
+- package: github.com/k8guard/k8guardlibs
+  repo: https://github.com/k8guard/k8guardlibs.git
+  vcs: git

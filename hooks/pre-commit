@@ -1,0 +1,24 @@
+#!/bin/sh
+
+go vet 2>&1
+if [ $? -ne 0 ]
+then
+	echo "go vet has detected potential issues in your project."
+	echo "Please check its output or run commit with --no-verify"
+	echo "if you know what you are doing."
+	exit 1
+fi
+
+gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$')
+[ -z "$gofiles" ] && exit 0
+
+printf "Formatting the following Go files:\n"
+for file in $gofiles; do
+  gofmt -l -w $PWD/$file
+  goimports -l -w $PWD/$file
+  git add $PWD/$file
+done
+
+printf "\n------------------------\n\n"
+
+exit 0
