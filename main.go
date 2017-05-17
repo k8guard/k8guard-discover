@@ -1,16 +1,15 @@
 package main
 
 import (
-	lib "github.com/k8guard/k8guardlibs"
-	"github.com/bradfitz/gomemcache/memcache"
-	"k8guard-discover/discover"
-	"k8guard-discover/metrics"
 	"flag"
-	"sync"
 	"fmt"
+	"sync"
+
+	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/k8guard/k8guard-discover/discover"
+	"github.com/k8guard/k8guard-discover/metrics"
+	lib "github.com/k8guard/k8guardlibs"
 )
-
-
 
 var (
 	Version string

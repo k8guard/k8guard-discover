@@ -9,7 +9,7 @@ import (
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"github.com/k8guard/k8guardlibs/messaging/kafka"
 	"github.com/k8guard/k8guardlibs/violations"
-	"k8guard-discover/metrics"
+	"github.com/k8guard/k8guard-discover/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
