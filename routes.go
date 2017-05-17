@@ -13,9 +13,9 @@ import (
 	lib "github.com/k8guard/k8guardlibs"
 	"encoding/json"
 	"text/template"
-	"k8guard-discover/templates"
-	"k8guard-discover/metrics"
-	"k8guard-discover/discover"
+	"github.com/k8guard/k8guard-discover/templates"
+	"github.com/k8guard/k8guard-discover/metrics"
+	"github.com/k8guard/k8guard-discover/discover"
 )
 
 

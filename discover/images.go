@@ -6,7 +6,7 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"k8s.io/client-go/pkg/api/v1"
 	lib "github.com/k8guard/k8guardlibs"
-	"k8guard-discover/metrics"
+	"github.com/k8guard/k8guard-discover/metrics"
 	"strings"
 	"github.com/prometheus/client_golang/prometheus"
 )

@@ -1,4 +1,4 @@
-package: k8guard-discover
+package: github.com/k8guard/k8guard-discover
 import:
 - package: k8s.io/client-go
   version: =v2.0.0-alpha.1
