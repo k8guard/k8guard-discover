@@ -1,5 +1,5 @@
-hash: 473662c53bc9bf8c323007223ea609ac3573d555dd98935663c28e438bed8887
-updated: 2017-05-17T12:57:17.452854158-05:00
+hash: d9a09f489f22deb5faa0ff643c53f73d25d5b71264fa2ce78b76c3590b4a3542
+updated: 2017-05-18T16:23:51.442019789-05:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -88,7 +88,7 @@ imports:
 - name: github.com/jonboulle/clockwork
   version: 72f9bd7c4e0c2a40055ab3d0f09654f730cce982
 - name: github.com/k8guard/k8guardlibs
-  version: 57467da42f3eef60eaf98f47b0e06e7f97cba714
+  version: 0558b3eafb02f616ee743b4ecfd93451ba2d33e1
   repo: https://github.com/k8guard/k8guardlibs.git
   vcs: git
   subpackages:
@@ -111,7 +111,7 @@ imports:
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
 - name: github.com/pierrec/lz4
-  version: 90290f74b1b4d9c097f0a3b3c7eba2ef3875c699
+  version: 88df27974e3644957507a1ca1866edc8e98d4897
 - name: github.com/pierrec/xxHash
   version: 5a004441f897722c627870a981d02b29924215fa
   subpackages:
@@ -150,7 +150,7 @@ imports:
   version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
-- name: github.com/Sirupsen/logrus
+- name: github.com/sirupsen/logrus
   version: c078b1e43f58d563c74cebe63c85789e76ddb627
 - name: github.com/spf13/pflag
   version: 5ccb023bc27df288a957c5e994cd44fd19619465
