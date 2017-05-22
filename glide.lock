@@ -1,5 +1,5 @@
-hash: d9a09f489f22deb5faa0ff643c53f73d25d5b71264fa2ce78b76c3590b4a3542
-updated: 2017-05-18T16:23:51.442019789-05:00
+hash: aad5006fc5c96cd5c4d180042c44c920987224a958024f9d58e43b7bc9b82e41
+updated: 2017-05-19T16:29:30.999345684-05:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -87,9 +87,11 @@ imports:
   version: 6633656539c1639d9d78127b7d47c622b5d7b6dc
 - name: github.com/jonboulle/clockwork
   version: 72f9bd7c4e0c2a40055ab3d0f09654f730cce982
+- name: github.com/juju/ratelimit
+  version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/k8guard/k8guardlibs
-  version: 0558b3eafb02f616ee743b4ecfd93451ba2d33e1
-  repo: https://github.com/k8guard/k8guardlibs.git
+  version: 3a98e5183df76e742cc564dd6489693ba6b50988
+  repo: git@git.target.com:medyagh/k8guardlibs.git
   vcs: git
   subpackages:
   - config
@@ -111,7 +113,7 @@ imports:
 - name: github.com/pborman/uuid
   version: ca53cad383cad2479bbba7f7a1a05797ec1386e4
 - name: github.com/pierrec/lz4
-  version: 88df27974e3644957507a1ca1866edc8e98d4897
+  version: 5a3d2245f97fc249850e7802e3c01fad02a1c316
 - name: github.com/pierrec/xxHash
   version: 5a004441f897722c627870a981d02b29924215fa
   subpackages:
@@ -139,7 +141,7 @@ imports:
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: d098ca18df8bc825079013daf7bacefbb1ee877e
+  version: 65c1f6f8f0fc1e2185eb9863a3bc751496404259
   subpackages:
   - xfs
 - name: github.com/PuerkitoBio/purell
@@ -212,7 +214,7 @@ imports:
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
 - name: k8s.io/client-go
-  version: d81cb85237595f720d83eda492bae8f6162fc5c0
+  version: e121606b0d09b2e1c467183ee46217fa85a6b672
   subpackages:
   - discovery
   - kubernetes
@@ -303,7 +305,6 @@ imports:
   - pkg/util/net
   - pkg/util/parsers
   - pkg/util/rand
-  - pkg/util/ratelimit
   - pkg/util/runtime
   - pkg/util/sets
   - pkg/util/uuid

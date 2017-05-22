@@ -1,6 +1,6 @@
 BINARY=k8guard-discover
 
-VERSION=`git fetch;git describe --tags`
+VERSION=`git fetch;git describe --tags > /dev/null 2>&1`
 BUILD=`date +%FT%T%z`
 
 LDFLAGS=-ldflags "-X main.Version=${VERSION} -X main.Build=${BUILD}"
