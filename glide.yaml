@@ -24,6 +24,6 @@ import:
   - prometheus/promhttp
 
 - package: github.com/k8guard/k8guardlibs
-  repo: git@git.target.com:medyagh/k8guardlibs.git
-  version: 3a98e5183df76e742cc564dd6489693ba6b50988
+  repo: https://github.com/k8guard/k8guardlibs.git
+  version: 0558b3eafb02f616ee743b4ecfd93451ba2d33e1
   vcs: git
