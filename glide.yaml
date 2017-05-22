@@ -1,13 +1,5 @@
 package: github.com/k8guard/k8guard-discover
 import:
-- package: k8s.io/client-go
-  version: =v2.0.0-alpha.1
-  subpackages:
-  - kubernetes
-  - pkg/api
-  - rest
-  - tools/clientcmd
-
 - package: github.com/pressly/chi
   version: b206b0359be0c971fbfab2aa15307482f9c300f4
   repo: https://github.com/pressly/chi.git
