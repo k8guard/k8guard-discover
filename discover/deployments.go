@@ -16,7 +16,7 @@ import (
 func GetAllDeployFromApi() []v1beta1.Deployment {
 	deploys, err := Clientset.Deployments(lib.Cfg.Namespace).List(v1.ListOptions{})
 	if err != nil {
-		lib.Log.Error("error:", err)
+		lib.Log.Error("error: ", err)
 		panic(err.Error())
 	}
 

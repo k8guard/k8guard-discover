@@ -8,7 +8,15 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 )
 
+//  to add a new prometheus metric, you need to add it to 4 places, all of them in this file.
+//  1- create const.
+//  2- create a guage var.
+//  3- register it.
+//  4- and add it to the handler.
+
+// step 1
 const (
+	ALL_NAMESPACE_COUNT  string = "k8guard_all_namespace_count"
 	ALL_DEPLOYMENT_COUNT string = "k8guard_all_deployment_count"
 	ALL_POD_COUNT        string = "k8guard_all_pod_count"
 	ALL_IMAGE_COUNT      string = "k8guard_all_image_count"
@@ -16,6 +24,7 @@ const (
 	ALL_JOB_COUNT        string = "k8guard_all_job_count"
 	ALL_CRONJOB_COUNT    string = "k8guard_all_cronjob_count"
 
+	BAD_NAMESPACE_COUNT    string = "k8guard_bad_namespace_count"
 	BAD_POD_COUNT          string = "k8guard_bad_pod_count"
 	BAD_POD_WO_OWNER_COUNT string = "k8guard_bad_pod_wo_owner_count"
 	BAD_DEPLOYMENT_COUNT   string = "k8guard_bad_deployment_count"
@@ -27,7 +36,15 @@ const (
 	METRIC_EXPIRE_SECONDS int32 = 43200
 )
 
+// step 2
 var (
+	AllNamespaceCountGauge = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: ALL_NAMESPACE_COUNT,
+			Help: "the number of all namespaces",
+		},
+	)
+
 	AllDeploymentCountGauge = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: ALL_DEPLOYMENT_COUNT,
@@ -67,6 +84,14 @@ var (
 		prometheus.GaugeOpts{
 			Name: ALL_CRONJOB_COUNT,
 			Help: "the number of all cron jobs",
+		},
+	)
+
+
+	BadNamespaceCountGauge = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: BAD_NAMESPACE_COUNT,
+			Help: "the number of namespaces without correct annotation",
 		},
 	)
 
@@ -119,6 +144,12 @@ var (
 	)
 
 	// Function Metrics
+	FNGetBadNamespaces = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "fn_get_bad_namespaces_duration",
+			Help: "time took for GetBadDeploys",
+		},
+	)
 
 	FNCacheAllImagesGauge = prometheus.NewGauge(
 		prometheus.GaugeOpts{
@@ -158,13 +189,17 @@ var (
 	)
 )
 
+// step 3
 func PromRegister() {
+	prometheus.MustRegister(AllNamespaceCountGauge)
 	prometheus.MustRegister(AllPodCountGauge)
 	prometheus.MustRegister(AllImageCountGauge)
 	prometheus.MustRegister(AllDeploymentCountGauge)
 	prometheus.MustRegister(AllIngressesGauge)
 	prometheus.MustRegister(AllJobsGauge)
 	prometheus.MustRegister(AllCronJobsGauge)
+
+	prometheus.MustRegister(BadNamespaceCountGauge)
 	prometheus.MustRegister(BadDeploymentCountGauge)
 	prometheus.MustRegister(BadPodCountGauge)
 	prometheus.MustRegister(BadPodWoOwnerGauge)
@@ -183,10 +218,11 @@ func PromRegister() {
 
 }
 
+// step 4
 func PromMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	myList := []string{
-		ALL_DEPLOYMENT_COUNT, ALL_POD_COUNT, ALL_IMAGE_COUNT, ALL_INGRESSES_COUNT, ALL_JOB_COUNT,
-		ALL_CRONJOB_COUNT, BAD_POD_COUNT, BAD_DEPLOYMENT_COUNT, BAD_POD_WO_OWNER_COUNT, BAD_INGRESSES_COUNT,
+		ALL_NAMESPACE_COUNT, ALL_DEPLOYMENT_COUNT, ALL_POD_COUNT, ALL_IMAGE_COUNT, ALL_INGRESSES_COUNT, ALL_JOB_COUNT,
+		ALL_CRONJOB_COUNT, BAD_NAMESPACE_COUNT, BAD_POD_COUNT, BAD_DEPLOYMENT_COUNT, BAD_POD_WO_OWNER_COUNT, BAD_INGRESSES_COUNT,
 		BAD_JOB_COUNT, BAD_JOB_WO_OWNER_COUNT, BAD_CRONJOB_COUNT,
 	}
 	for _, i := range myList {
@@ -197,6 +233,10 @@ func PromMetricsHandler(w http.ResponseWriter, r *http.Request) {
 		parsedCount, _ := strconv.ParseFloat(string(count.Value), 64)
 
 		switch i {
+		case ALL_NAMESPACE_COUNT:
+			AllNamespaceCountGauge.Set(parsedCount)
+			break
+
 		case ALL_POD_COUNT:
 			AllPodCountGauge.Set(parsedCount)
 			break
@@ -214,6 +254,10 @@ func PromMetricsHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		case ALL_CRONJOB_COUNT:
 			AllCronJobsGauge.Set(parsedCount)
+			break
+
+		case BAD_NAMESPACE_COUNT:
+			BadNamespaceCountGauge.Set(parsedCount)
 			break
 		case BAD_DEPLOYMENT_COUNT:
 			BadDeploymentCountGauge.Set(parsedCount)
@@ -240,4 +284,3 @@ func PromMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	promhttp.Handler().ServeHTTP(w, r)
 }
-

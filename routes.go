@@ -1,7 +1,5 @@
 package main
 
-
-
 import (
 	"net/http"
 	"github.com/bradfitz/gomemcache/memcache"
@@ -17,7 +15,6 @@ import (
 	"github.com/k8guard/k8guard-discover/metrics"
 	"github.com/k8guard/k8guard-discover/discover"
 )
-
 
 func startHttpServer() {
 
@@ -46,12 +43,12 @@ func startHttpServer() {
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		type myRoute struct {
-			Names []string
+			Names   []string
 			Cluster string
 			Version string
 		}
 
-		data := myRoute{Cluster: lib.Cfg.ClusterName, Names: []string{"deploys", "podswo", "ingresses", "jobs", "cronjobs", "config", "metrics", "version"},Version:Version+"_"+Build}
+		data := myRoute{Cluster: lib.Cfg.ClusterName, Names: []string{"namespaces", "deploys", "podswo", "ingresses", "jobs", "cronjobs", "config", "metrics", "version"}, Version: Version + "_" + Build}
 
 		t := template.New("Index Template")
 		t, err := t.Parse(templates.INDEX_TEMPLATE_DISCOVER)
@@ -157,6 +154,23 @@ func startHttpServer() {
 			renderJSONString(w, r, cachedBadCronJobs.Value)
 		} else {
 			renderJSONString(w, r, cachedBadCronJobs.Value)
+		}
+
+	})
+
+	r.Get("/namespaces", func(w http.ResponseWriter, r *http.Request) {
+		cachedBadNamespaces, err := Memcached.Get("cached_bad_namespaces")
+		if err != nil {
+			response, _ := json.Marshal(discover.GetBadNamespaces(discover.GetAllNamspacesFromApi(), false))
+			Memcached.Set(&memcache.Item{Key: "cached_bad_namespaces", Expiration: 300, Value: []byte(response)})
+			cachedBadNamespaces, err = Memcached.Get("cached_bad_namespaces")
+			if err != nil {
+				panic(err)
+			}
+
+			renderJSONString(w, r, cachedBadNamespaces.Value)
+		} else {
+			renderJSONString(w, r, cachedBadNamespaces.Value)
 		}
 
 	})
