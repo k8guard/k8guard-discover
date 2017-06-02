@@ -18,6 +18,7 @@ var KafkaProducer kafka.KafkaProducer
 
 
 var err error
+// exporting this error to be used to avoid hammering the api if kafka is not there
 var KafkaProducerError error
 
 func init() {
