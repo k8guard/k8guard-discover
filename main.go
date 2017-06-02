@@ -37,6 +37,12 @@ func main() {
 	flag.Parse()
 
 	if *kafkaMode {
+
+		if discover.KafkaProducerError != nil {
+			lib.Log.Error("Kafka is not ready, won't make any api calls")
+			panic(discover.KafkaProducerError)
+		}
+
 		var waitGroup sync.WaitGroup
 		waitGroup.Add(5)
 		lib.Log.Info("Starting in Kafka Mode")

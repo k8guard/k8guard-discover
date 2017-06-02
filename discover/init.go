@@ -18,13 +18,15 @@ var KafkaProducer kafka.KafkaProducer
 
 
 var err error
-
+// exporting this error to be used to avoid hammering the api if kafka is not there
+var KafkaProducerError error
 
 func init() {
 	Clientset, err = k8s.LoadClientset()
 	Memcached = memcache.New(fmt.Sprintf("%s:11211", lib.Cfg.MemCachedHostname))
 
-	KafkaProducer, err = kafka.NewProducer(kafka.DISCOVER_CLIENTID, lib.Cfg)
+	KafkaProducer, KafkaProducerError = kafka.NewProducer(kafka.DISCOVER_CLIENTID, lib.Cfg)
+
 	// defer KafkaProducer.Close()
 
 
