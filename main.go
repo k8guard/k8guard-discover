@@ -37,11 +37,8 @@ func main() {
 	flag.Parse()
 
 	if *kafkaMode {
-
-		if discover.KafkaProducerError != nil {
-			lib.Log.Error("Kafka is not ready, won't make any api calls")
-			panic(discover.KafkaProducerError)
-		}
+		// test if kafka is there before making api calls
+		discover.TestKafkaWithTestMessage()
 
 		var waitGroup sync.WaitGroup
 		waitGroup.Add(5)
