@@ -43,6 +43,8 @@ func main() {
 		var waitGroup sync.WaitGroup
 		waitGroup.Add(5)
 		lib.Log.Info("Starting in Kafka Mode")
+		lib.Log.Info("Version: ", Version)
+		lib.Log.Info("BuildNumber: ", Build)
 
 		if err != nil {
 			panic(err)
