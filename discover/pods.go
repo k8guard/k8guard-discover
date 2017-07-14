@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"k8s.io/client-go/pkg/api/v1"
 	lib "github.com/k8guard/k8guardlibs"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/k8guard/k8guardlibs/messaging/kafka"
 	"github.com/k8guard/k8guardlibs/violations"
 	"github.com/k8guard/k8guard-discover/metrics"
@@ -14,7 +15,7 @@ import (
 )
 
 func GetAllPodsFromApi() []v1.Pod {
-	pods, err := Clientset.CoreV1().Pods(lib.Cfg.Namespace).List(v1.ListOptions{})
+	pods, err := Clientset.CoreV1().Pods(lib.Cfg.Namespace).List(metav1.ListOptions{})
 	if err != nil {
 		lib.Log.Error("error:", err)
 		panic(err.Error())

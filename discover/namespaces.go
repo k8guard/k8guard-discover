@@ -3,6 +3,7 @@ package discover
 import (
 	lib "github.com/k8guard/k8guardlibs"
 	"k8s.io/client-go/pkg/api/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/k8guard/k8guard-discover/metrics"
 	"github.com/k8guard/k8guardlibs/messaging/kafka"
 	"github.com/prometheus/client_golang/prometheus"
@@ -23,7 +24,7 @@ func isIgnoredNamespace(namespace string) bool {
 func GetAllNamspacesFromApi() []v1.Namespace {
 	namespaces := Clientset.Namespaces()
 
-	namespaceList, err := namespaces.List(v1.ListOptions{})
+	namespaceList, err := namespaces.List(metav1.ListOptions{})
 
 	if err != nil {
 		lib.Log.Error("error: ", err)
@@ -77,7 +78,7 @@ func GetBadNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []lib.Name
 }
 
 func hasOwnerAnnotation(namespace v1.Namespace,annotationKind string) bool {
-	teamString, ok := namespace.Annotations[annotationKind];
+	teamString, ok := namespace.Annotations[annotationKind]
 	if ok {
 		team := strings.Split(teamString, ",")
 		if len(team) > 0 {
