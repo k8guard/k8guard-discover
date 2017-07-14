@@ -6,6 +6,7 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"k8s.io/client-go/pkg/api/v1"
 	lib "github.com/k8guard/k8guardlibs"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/k8guard/k8guard-discover/metrics"
 	"strings"
 	"github.com/prometheus/client_golang/prometheus"
@@ -18,7 +19,7 @@ func cacheAllImages(storeInMemcached bool) {
 
 	imageCount := int64(0)
 
-	nodes, err := Clientset.CoreV1().Nodes().List(v1.ListOptions{})
+	nodes, err := Clientset.CoreV1().Nodes().List(metav1.ListOptions{})
 	if err != nil {
 		panic(err.Error())
 	}

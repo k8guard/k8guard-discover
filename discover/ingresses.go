@@ -1,8 +1,8 @@
 package discover
 
 import (
-	"k8s.io/client-go/pkg/api/v1"
 	lib "github.com/k8guard/k8guardlibs"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"github.com/k8guard/k8guardlibs/messaging/kafka"
 	"strings"
@@ -12,7 +12,7 @@ import (
 )
 
 func GetAllIngressFromApi() []v1beta1.Ingress {
-	ingresses, err := Clientset.Ingresses(lib.Cfg.Namespace).List(v1.ListOptions{})
+	ingresses, err := Clientset.Ingresses(lib.Cfg.Namespace).List(metav1.ListOptions{})
 	if err != nil {
 		lib.Log.Error("error:", err)
 		panic(err.Error())
@@ -41,7 +41,7 @@ func GetBadIngresses(allIngresses []v1beta1.Ingress, sendToKafka bool) []lib.Ing
 			isBadIngressRule(rule, &in)
 		}
 
-		if (len(in.Violations) > 0) {
+		if len(in.Violations) > 0 {
 			allBadIngresses = append(allBadIngresses, in)
 			if sendToKafka {
 				lib.Log.Debug("Sending ", in.Name, " to kafka")
@@ -62,14 +62,14 @@ func GetBadIngresses(allIngresses []v1beta1.Ingress, sendToKafka bool) []lib.Ing
 func isBadIngressRule(rule v1beta1.IngressRule, ingress *lib.Ingress) bool {
 
 	if isNotIgnoredViloation(violations.INGRESS_HOST_INVALID_TYPE) {
-		for _, s := range (lib.Cfg.IngressMustContain) {
+		for _, s := range lib.Cfg.IngressMustContain {
 			if strings.Contains(rule.Host, s) != true {
 				ingress.Violations = append(ingress.Violations, violations.Violation{Source: rule.Host, Type: violations.INGRESS_HOST_INVALID_TYPE})
 				return true
 			}
 		}
 
-		for _, s := range (lib.Cfg.IngressMustNOTContain) {
+		for _, s := range lib.Cfg.IngressMustNOTContain {
 			if strings.Contains(rule.Host, s) == true {
 				ingress.Violations = append(ingress.Violations, violations.Violation{Source: rule.Host, Type: violations.INGRESS_HOST_INVALID_TYPE})
 				return true

@@ -2,17 +2,17 @@ package discover
 
 import (
 	"k8s.io/client-go/pkg/apis/batch/v2alpha1"
+	batch "k8s.io/client-go/pkg/apis/batch/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	lib "github.com/k8guard/k8guardlibs"
-	"k8s.io/client-go/pkg/api/v1"
 	"github.com/k8guard/k8guardlibs/messaging/kafka"
 	"strings"
 	"github.com/k8guard/k8guard-discover/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-
-func GetAllJobFromApi() []v2alpha1.Job {
-	jobs, err := Clientset.BatchV2alpha1().Jobs(lib.Cfg.Namespace).List(v1.ListOptions{})
+func GetAllJobFromApi() []batch.Job {
+	jobs, err := Clientset.BatchV1().Jobs(lib.Cfg.Namespace).List(metav1.ListOptions{})
 
 	if err != nil {
 		lib.Log.Error("error:", err)
@@ -24,7 +24,7 @@ func GetAllJobFromApi() []v2alpha1.Job {
 }
 
 func GetAllCronJobFromApi() []v2alpha1.CronJob {
-	cronjobs, err := Clientset.BatchV2alpha1().CronJobs(lib.Cfg.Namespace).List(v1.ListOptions{})
+	cronjobs, err := Clientset.BatchV2alpha1().CronJobs(lib.Cfg.Namespace).List(metav1.ListOptions{})
 
 	if err != nil {
 		lib.Log.Error("error:", err)
@@ -75,7 +75,7 @@ func GetBadCronJobs(allCronJobs []v2alpha1.CronJob, sendToKafka bool) []lib.Cron
 
 }
 
-func GetBadJobs(allJobs []v2alpha1.Job, sendToKafka bool) []lib.Job {
+func GetBadJobs(allJobs []batch.Job, sendToKafka bool) []lib.Job {
 	timer := prometheus.NewTimer(prometheus.ObserverFunc(metrics.FNGetBadJobs.Set))
 	defer timer.ObserveDuration()
 
@@ -104,7 +104,7 @@ func GetBadJobs(allJobs []v2alpha1.Job, sendToKafka bool) []lib.Job {
 		getVolumesWithHostPathForAPod(kj.Spec.Template.Spec, &j.ViolatableEntity)
 		GetBadContainers(kj.Spec.Template.Spec, &j.ViolatableEntity)
 
-		if (len(j.Violations) > 0) {
+		if len(j.Violations) > 0 {
 
 			badJobsCounter += 1
 			allBadJobsWitoutOwner = append(allBadJobsWitoutOwner, j)

@@ -12,15 +12,19 @@ import (
 
 
 // Clientset talks to kubernetes API
-var Clientset kubernetes.Clientset
+var Clientset *kubernetes.Clientset
 var Memcached *memcache.Client
 var KafkaProducer kafka.KafkaProducer
-
-
 var err error
 
 func init() {
 	Clientset, err = k8s.LoadClientset()
+
+	if err != nil {
+		lib.Log.Error("error loading ClientSet ", err)
+		panic(err)
+	}
+
 	Memcached = memcache.New(fmt.Sprintf("%s:11211", lib.Cfg.MemCachedHostname))
 
 	KafkaProducer, err = kafka.NewProducer(kafka.DISCOVER_CLIENTID, lib.Cfg)
