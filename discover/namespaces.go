@@ -1,15 +1,16 @@
 package discover
 
 import (
-	lib "github.com/k8guard/k8guardlibs"
-	"k8s.io/client-go/pkg/api/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/k8guard/k8guard-discover/metrics"
-	"github.com/k8guard/k8guardlibs/messaging/kafka"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/k8guard/k8guardlibs/violations"
-	"strings"
 	"encoding/json"
+	"strings"
+
+	"github.com/k8guard/k8guard-discover/metrics"
+	lib "github.com/k8guard/k8guardlibs"
+	"github.com/k8guard/k8guardlibs/messaging/kafka"
+	"github.com/k8guard/k8guardlibs/violations"
+	"github.com/prometheus/client_golang/prometheus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 func isIgnoredNamespace(namespace string) bool {
@@ -52,10 +53,10 @@ func GetBadNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []lib.Name
 		n.Cluster = lib.Cfg.ClusterName
 		// this one feels weird but to be consistent
 
-		if hasOwnerAnnotation(kn,lib.Cfg.AnnotationFormatForEmails) == false && hasOwnerAnnotation(kn,lib.Cfg.AnnotationFormatForChatIds) == false && isNotIgnoredViloation(violations.NO_OWNER_ANNOTATION_TYPE) {
+		if hasOwnerAnnotation(kn, lib.Cfg.AnnotationFormatForEmails) == false && hasOwnerAnnotation(kn, lib.Cfg.AnnotationFormatForChatIds) == false && isNotIgnoredViloation(violations.NO_OWNER_ANNOTATION_TYPE) {
 			jsonString, err := json.Marshal(kn.Annotations)
 			if err != nil {
-				lib.Log.Error("Can not convert annotation to a valid json ",err)
+				lib.Log.Error("Can not convert annotation to a valid json ", err)
 
 			}
 			n.Violations = append(n.Violations, violations.Violation{Source: string(jsonString), Type: violations.NO_OWNER_ANNOTATION_TYPE})
@@ -77,7 +78,7 @@ func GetBadNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []lib.Name
 	return allBadNamespaces
 }
 
-func hasOwnerAnnotation(namespace v1.Namespace,annotationKind string) bool {
+func hasOwnerAnnotation(namespace v1.Namespace, annotationKind string) bool {
 	teamString, ok := namespace.Annotations[annotationKind]
 	if ok {
 		team := strings.Split(teamString, ",")

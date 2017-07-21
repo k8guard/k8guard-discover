@@ -1,14 +1,15 @@
 package discover
 
 import (
-	"k8s.io/client-go/pkg/apis/batch/v2alpha1"
-	batch "k8s.io/client-go/pkg/apis/batch/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
+
+	"github.com/k8guard/k8guard-discover/metrics"
 	lib "github.com/k8guard/k8guardlibs"
 	"github.com/k8guard/k8guardlibs/messaging/kafka"
-	"strings"
-	"github.com/k8guard/k8guard-discover/metrics"
 	"github.com/prometheus/client_golang/prometheus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	batch "k8s.io/client-go/pkg/apis/batch/v1"
+	"k8s.io/client-go/pkg/apis/batch/v2alpha1"
 )
 
 func GetAllJobFromApi() []batch.Job {

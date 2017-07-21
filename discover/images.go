@@ -3,13 +3,14 @@ package discover
 import (
 	"fmt"
 	"strconv"
-	"github.com/bradfitz/gomemcache/memcache"
-	"k8s.io/client-go/pkg/api/v1"
-	lib "github.com/k8guard/k8guardlibs"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/k8guard/k8guard-discover/metrics"
 	"strings"
+
+	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/k8guard/k8guard-discover/metrics"
+	lib "github.com/k8guard/k8guardlibs"
 	"github.com/prometheus/client_golang/prometheus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api/v1"
 )
 
 // gets all the images with their sizes and puts them in memcached
@@ -54,7 +55,6 @@ func cacheAllImages(storeInMemcached bool) {
 	metrics.Update(metrics.ALL_IMAGE_COUNT, int(imageCount))
 
 }
-
 
 func isValidImageRepo(imageName string) bool {
 	for _, i := range lib.Cfg.ApprovedImageRepos {

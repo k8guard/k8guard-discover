@@ -1,5 +1,5 @@
 #!/bin/sh
-
+printf "\n--- pre-commit formatting ---\n\n"
 go vet 2>&1
 if [ $? -ne 0 ]
 then
@@ -9,7 +9,7 @@ then
 	exit 1
 fi
 
-gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$')
+gofiles=$(git diff  --name-only --diff-filter=ACM | grep '\.go$')
 [ -z "$gofiles" ] && exit 0
 
 printf "Formatting the following Go files:\n"
@@ -19,6 +19,6 @@ for file in $gofiles; do
   git add $PWD/$file
 done
 
-printf "\n------------------------\n\n"
+printf "\n--- Done ! ---\n\n"
 
 exit 0
