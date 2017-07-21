@@ -2,15 +2,16 @@ package metrics
 
 import (
 	"net/http"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"strconv"
-	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 //  to add a new prometheus metric, you need to add it to 4 places, all of them in this file.
 //  1- create const.
-//  2- create a guage var.
+//  2- create a gauge var.
 //  3- register it.
 //  4- and add it to the handler.
 
@@ -86,7 +87,6 @@ var (
 			Help: "the number of all cron jobs",
 		},
 	)
-
 
 	BadNamespaceCountGauge = prometheus.NewGauge(
 		prometheus.GaugeOpts{
