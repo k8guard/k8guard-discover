@@ -9,7 +9,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-//  to add a new prometheus metric, you need to add it to 4 places, all of them in this file.
+//  To add a new prometheus metric, you need to add it to 4 places, all of them in this file.
 //  1- create const.
 //  2- create a gauge var.
 //  3- register it.

@@ -9,7 +9,7 @@ then
 	exit 1
 fi
 
-gofiles=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$')
+gofiles=$(git diff --cached --name-only | grep '\.go$')
 [ -z "$gofiles" ] && exit 0
 
 printf "Formatting the following Go files:\n"
