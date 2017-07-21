@@ -1,10 +1,11 @@
 package metrics
 
 import (
-	"github.com/bradfitz/gomemcache/memcache"
-	lib "github.com/k8guard/k8guardlibs"
 	"fmt"
 	"strconv"
+
+	"github.com/bradfitz/gomemcache/memcache"
+	lib "github.com/k8guard/k8guardlibs"
 )
 
 var Memcached *memcache.Client
@@ -13,7 +14,6 @@ func init() {
 	Memcached = memcache.New(fmt.Sprintf("%s:11211", lib.Cfg.MemCachedHostname))
 
 }
-
 
 // to avoid conflicting metrics from sleeping workers. updates the metrics in memcached.
 func Update(key string, value int) {
