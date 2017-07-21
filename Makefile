@@ -5,6 +5,8 @@ BUILD=`date +%FT%T%z`
 
 LDFLAGS=-ldflags "-X main.Version=${VERSION} -X main.Build=${BUILD}"
 
+create-hooks:
+	ln -s $(CURDIR)/hooks/pre-commit .git/hooks/pre-commit
 
 deps:
 	glide install
