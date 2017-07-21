@@ -1,15 +1,16 @@
 package discover
 
 import (
-	"strings"
-	"io/ioutil"
 	"encoding/json"
-	"k8s.io/client-go/pkg/api/v1"
+	"io/ioutil"
+	"strings"
+
+	"github.com/k8guard/k8guard-discover/metrics"
 	lib "github.com/k8guard/k8guardlibs"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"github.com/k8guard/k8guardlibs/messaging/kafka"
 	"github.com/k8guard/k8guardlibs/violations"
-	"github.com/k8guard/k8guard-discover/metrics"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api/v1"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -21,7 +22,7 @@ func GetAllPodsFromApi() []v1.Pod {
 		panic(err.Error())
 	}
 
-	if (lib.Cfg.OutputPodsToFile == true) {
+	if lib.Cfg.OutputPodsToFile == true {
 		r, _ := json.Marshal(pods.Items)
 		err = ioutil.WriteFile("allpodsfromapi.txt", r, 0644)
 		if err != nil {
@@ -62,7 +63,7 @@ func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
 		getVolumesWithHostPathForAPod(kp.Spec, &p.ViolatableEntity)
 		GetBadContainers(kp.Spec, &p.ViolatableEntity)
 
-		if (len(p.Violations) > 0) {
+		if len(p.Violations) > 0 {
 
 			badPodsCounter += 1
 			allBadPodsWitoutOwner = append(allBadPodsWitoutOwner, p)
@@ -88,7 +89,7 @@ func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
 // gets a list of entity and fills the host type violations for them
 func getVolumesWithHostPathForAPod(spec v1.PodSpec, entity *lib.ViolatableEntity) {
 	if isNotIgnoredViloation(violations.HOST_VOLUMES_TYPE) {
-		for _, v := range (spec.Volumes) {
+		for _, v := range spec.Volumes {
 			if v.HostPath != nil {
 				entity.Violations = append(entity.Violations, violations.Violation{Source: v.Name, Type: violations.HOST_VOLUMES_TYPE})
 			}

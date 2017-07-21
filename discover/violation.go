@@ -6,7 +6,7 @@ import (
 )
 
 func isNotIgnoredViloation(vt vlib.ViolationType) bool {
-	for _, ignoredV := range (lib.Cfg.IgnoredViolations) {
+	for _, ignoredV := range lib.Cfg.IgnoredViolations {
 		if string(vt) == ignoredV {
 			return false
 		}

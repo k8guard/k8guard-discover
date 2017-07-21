@@ -1,14 +1,15 @@
 package discover
 
 import (
+	"strings"
+
+	"github.com/k8guard/k8guard-discover/metrics"
 	lib "github.com/k8guard/k8guardlibs"
+	"github.com/k8guard/k8guardlibs/messaging/kafka"
+	"github.com/k8guard/k8guardlibs/violations"
+	"github.com/prometheus/client_golang/prometheus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
-	"github.com/k8guard/k8guardlibs/messaging/kafka"
-	"strings"
-	"github.com/k8guard/k8guardlibs/violations"
-	"github.com/k8guard/k8guard-discover/metrics"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 func GetAllIngressFromApi() []v1beta1.Ingress {

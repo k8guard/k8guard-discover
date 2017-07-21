@@ -1,15 +1,14 @@
 package discover
 
 import (
+	"fmt"
+
 	"github.com/bradfitz/gomemcache/memcache"
-	"k8s.io/client-go/kubernetes"
 	lib "github.com/k8guard/k8guardlibs"
 	"github.com/k8guard/k8guardlibs/k8s"
-	"fmt"
 	"github.com/k8guard/k8guardlibs/messaging/kafka"
-
+	"k8s.io/client-go/kubernetes"
 )
-
 
 // Clientset talks to kubernetes API
 var Clientset *kubernetes.Clientset
@@ -36,8 +35,7 @@ func init() {
 
 }
 
-
-func TestKafkaWithTestMessage() error{
+func TestKafkaWithTestMessage() error {
 	// Sending Test Data
 	err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.TEST_MESSAGE, "Testing")
 	if err != nil {
@@ -46,4 +44,3 @@ func TestKafkaWithTestMessage() error{
 	}
 	return err
 }
-
