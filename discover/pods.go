@@ -2,6 +2,7 @@ package discover
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -61,6 +62,7 @@ func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
 		p.Cluster = lib.Cfg.ClusterName
 		p.Namespace = kp.Namespace
 		getVolumesWithHostPathForAPod(kp.Spec, &p.ViolatableEntity)
+		verifyPodAnnotations(kp.ObjectMeta, &p.ViolatableEntity)
 		GetBadContainers(kp.Spec, &p.ViolatableEntity)
 
 		if len(p.Violations) > 0 {
@@ -88,7 +90,7 @@ func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
 
 // gets a list of entity and fills the host type violations for them
 func getVolumesWithHostPathForAPod(spec v1.PodSpec, entity *lib.ViolatableEntity) {
-	if isNotIgnoredViloation(violations.HOST_VOLUMES_TYPE) {
+	if isNotIgnoredViolation(violations.HOST_VOLUMES_TYPE) {
 		for _, v := range spec.Volumes {
 			if v.HostPath != nil {
 				entity.Violations = append(entity.Violations, violations.Violation{Source: v.Name, Type: violations.HOST_VOLUMES_TYPE})
@@ -104,4 +106,18 @@ func isIgnoredPodPrefix(podname string) bool {
 		}
 	}
 	return false
+}
+
+// verify whether a specific annotation(s) exists
+func verifyPodAnnotations(objectMeta metav1.ObjectMeta, entity *lib.ViolatableEntity) {
+	lib.Log.Info("hit verifyPodAnnotations.  not ignored: ", isNotIgnoredViolation(violations.REQUIRED_POD_ANNOTATIONS_TYPE))
+	if isNotIgnoredViolation(violations.REQUIRED_POD_ANNOTATIONS_TYPE) {
+		lib.Log.Info("   RequiredPodAnnotations: ", fmt.Sprintf("%v", lib.Cfg.RequiredPodAnnotations))
+		lib.Log.Info("   objectMeta.Annotations: ", fmt.Sprintf("%v", objectMeta.Annotations))
+		for _, a := range lib.Cfg.RequiredPodAnnotations {
+			if _, ok := objectMeta.Annotations[a]; !ok {
+				entity.Violations = append(entity.Violations, violations.Violation{Source: a, Type: violations.REQUIRED_POD_ANNOTATIONS_TYPE})
+			}
+		}
+	}
 }

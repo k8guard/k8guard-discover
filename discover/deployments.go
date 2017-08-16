@@ -53,8 +53,9 @@ func GetBadDeploys(theDeploys []v1beta1.Deployment, sendToKafka bool) []lib.Depl
 		d.Cluster = lib.Cfg.ClusterName
 		d.Namespace = kd.Namespace
 		getVolumesWithHostPathForAPod(kd.Spec.Template.Spec, &d.ViolatableEntity)
+		verifyPodAnnotations(kd.Spec.Template.ObjectMeta, &d.ViolatableEntity)
 		GetBadContainers(kd.Spec.Template.Spec, &d.ViolatableEntity)
-		if isValidReplicaSize(kd) == false && isNotIgnoredViloation(violations.SINGLE_REPLICA_TYPE) {
+		if isValidReplicaSize(kd) == false && isNotIgnoredViolation(violations.SINGLE_REPLICA_TYPE) {
 			d.Violations = append(d.Violations, violations.Violation{Source: kd.Name, Type: violations.SINGLE_REPLICA_TYPE})
 		}
 

@@ -62,7 +62,7 @@ func GetBadIngresses(allIngresses []v1beta1.Ingress, sendToKafka bool) []lib.Ing
 
 func isBadIngressRule(rule v1beta1.IngressRule, ingress *lib.Ingress) bool {
 
-	if isNotIgnoredViloation(violations.INGRESS_HOST_INVALID_TYPE) {
+	if isNotIgnoredViolation(violations.INGRESS_HOST_INVALID_TYPE) {
 		for _, s := range lib.Cfg.IngressMustContain {
 			if strings.Contains(rule.Host, s) != true {
 				ingress.Violations = append(ingress.Violations, violations.Violation{Source: rule.Host, Type: violations.INGRESS_HOST_INVALID_TYPE})

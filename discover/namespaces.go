@@ -53,7 +53,7 @@ func GetBadNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []lib.Name
 		n.Cluster = lib.Cfg.ClusterName
 		// this one feels weird but to be consistent
 
-		if hasOwnerAnnotation(kn, lib.Cfg.AnnotationFormatForEmails) == false && hasOwnerAnnotation(kn, lib.Cfg.AnnotationFormatForChatIds) == false && isNotIgnoredViloation(violations.NO_OWNER_ANNOTATION_TYPE) {
+		if hasOwnerAnnotation(kn, lib.Cfg.AnnotationFormatForEmails) == false && hasOwnerAnnotation(kn, lib.Cfg.AnnotationFormatForChatIds) == false && isNotIgnoredViolation(violations.NO_OWNER_ANNOTATION_TYPE) {
 			jsonString, err := json.Marshal(kn.Annotations)
 			if err != nil {
 				lib.Log.Error("Can not convert annotation to a valid json ", err)
