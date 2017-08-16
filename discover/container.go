@@ -21,24 +21,24 @@ func getContainerImageSize(imageName string) int64 {
 }
 
 /// Gets Containers with invalid size, invalid repo, or cababilities/privileged
-func GetBadContainers(spec v1.PodSpec, entity *lib.ViolatableEntity) {
+func GetBadContainers(name string, spec v1.PodSpec, entity *lib.ViolatableEntity) {
 	for _, c := range spec.Containers {
 		cImageSize := getContainerImageSize(c.Image)
-		if isValidImageRepo(c.Image) == false && isNotIgnoredViolation(violations.IMAGE_REPO_TYPE) {
+		if isValidImageRepo(c.Image) == false && isNotIgnoredViolation(name, violations.IMAGE_REPO_TYPE) {
 			entity.Violations = append(entity.Violations, violations.Violation{Source: c.Image, Type: violations.IMAGE_REPO_TYPE})
 		}
 
-		if isValidImageSize(cImageSize) == false && isNotIgnoredViolation(violations.IMAGE_SIZE_TYPE) {
+		if isValidImageSize(cImageSize) == false && isNotIgnoredViolation(name, violations.IMAGE_SIZE_TYPE) {
 			entity.Violations = append(entity.Violations, violations.Violation{Source: c.Image, Type: violations.IMAGE_SIZE_TYPE})
 		}
 
 		if c.SecurityContext != nil {
-			if c.SecurityContext.Privileged != nil && *c.SecurityContext.Privileged && isNotIgnoredViolation(violations.PRIVILEGED_TYPE) {
+			if c.SecurityContext.Privileged != nil && *c.SecurityContext.Privileged && isNotIgnoredViolation(name, violations.PRIVILEGED_TYPE) {
 				entity.Violations = append(entity.Violations, violations.Violation{Source: c.Image, Type: violations.PRIVILEGED_TYPE})
 			}
 
 			//Check if containers have extra capabilities set like NET_ADMIN...
-			if c.SecurityContext.Capabilities != nil && len(c.SecurityContext.Capabilities.Add) > 0 && isNotIgnoredViolation(violations.CAPABILITIES_TYPE) {
+			if c.SecurityContext.Capabilities != nil && len(c.SecurityContext.Capabilities.Add) > 0 && isNotIgnoredViolation(name, violations.CAPABILITIES_TYPE) {
 				entity.Violations = append(entity.Violations, violations.Violation{Source: c.Image, Type: violations.CAPABILITIES_TYPE})
 			}
 		}

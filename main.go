@@ -53,6 +53,10 @@ func main() {
 			defer waitGroup.Done()
 			discover.GetBadDeploys(discover.GetAllDeployFromApi(), true)
 		}()
+		go func() {
+			defer waitGroup.Done()
+			discover.GetBadDaemonSets(discover.GetAllDaemonSetFromApi(), true)
+		}()
 
 		go func() {
 			defer waitGroup.Done()

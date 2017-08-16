@@ -39,7 +39,7 @@ func GetBadIngresses(allIngresses []v1beta1.Ingress, sendToKafka bool) []lib.Ing
 		in.Namespace = kin.Namespace
 
 		for _, rule := range kin.Spec.Rules {
-			isBadIngressRule(rule, &in)
+			isBadIngressRule(kin.Name, rule, &in)
 		}
 
 		if len(in.Violations) > 0 {
@@ -60,9 +60,9 @@ func GetBadIngresses(allIngresses []v1beta1.Ingress, sendToKafka bool) []lib.Ing
 
 }
 
-func isBadIngressRule(rule v1beta1.IngressRule, ingress *lib.Ingress) bool {
+func isBadIngressRule(name string, rule v1beta1.IngressRule, ingress *lib.Ingress) bool {
 
-	if isNotIgnoredViolation(violations.INGRESS_HOST_INVALID_TYPE) {
+	if isNotIgnoredViolation(name, violations.INGRESS_HOST_INVALID_TYPE) {
 		for _, s := range lib.Cfg.IngressMustContain {
 			if strings.Contains(rule.Host, s) != true {
 				ingress.Violations = append(ingress.Violations, violations.Violation{Source: rule.Host, Type: violations.INGRESS_HOST_INVALID_TYPE})

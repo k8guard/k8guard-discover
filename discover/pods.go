@@ -2,7 +2,6 @@ package discover
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -46,14 +45,15 @@ func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
 
 	for _, kp := range allPods {
 
+		if isIgnoredNamespace(kp.Namespace) == true || isIgnoredPodPrefix(kp.ObjectMeta.Name) == true {
+			continue
+		}
+
 		_, createdByAnnotation := kp.Annotations["kubernetes.io/created-by"]
 		if createdByAnnotation == true {
 			continue
 		}
 
-		if isIgnoredNamespace(kp.Namespace) == true || isIgnoredPodPrefix(kp.ObjectMeta.Name) == true {
-			continue
-		}
 		if kp.Status.Phase != "Running" {
 			continue
 		}
@@ -61,9 +61,9 @@ func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
 		p.Name = kp.Name
 		p.Cluster = lib.Cfg.ClusterName
 		p.Namespace = kp.Namespace
-		getVolumesWithHostPathForAPod(kp.Spec, &p.ViolatableEntity)
-		verifyPodAnnotations(kp.ObjectMeta, &p.ViolatableEntity)
-		GetBadContainers(kp.Spec, &p.ViolatableEntity)
+		getVolumesWithHostPathForAPod(kp.Name, kp.Spec, &p.ViolatableEntity)
+		verifyPodAnnotations(kp.Name, kp.ObjectMeta, &p.ViolatableEntity)
+		GetBadContainers(kp.Name, kp.Spec, &p.ViolatableEntity)
 
 		if len(p.Violations) > 0 {
 
@@ -89,8 +89,8 @@ func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
 }
 
 // gets a list of entity and fills the host type violations for them
-func getVolumesWithHostPathForAPod(spec v1.PodSpec, entity *lib.ViolatableEntity) {
-	if isNotIgnoredViolation(violations.HOST_VOLUMES_TYPE) {
+func getVolumesWithHostPathForAPod(name string, spec v1.PodSpec, entity *lib.ViolatableEntity) {
+	if isNotIgnoredViolation(name, violations.HOST_VOLUMES_TYPE) {
 		for _, v := range spec.Volumes {
 			if v.HostPath != nil {
 				entity.Violations = append(entity.Violations, violations.Violation{Source: v.Name, Type: violations.HOST_VOLUMES_TYPE})
@@ -109,11 +109,8 @@ func isIgnoredPodPrefix(podname string) bool {
 }
 
 // verify whether a specific annotation(s) exists
-func verifyPodAnnotations(objectMeta metav1.ObjectMeta, entity *lib.ViolatableEntity) {
-	lib.Log.Info("hit verifyPodAnnotations.  not ignored: ", isNotIgnoredViolation(violations.REQUIRED_POD_ANNOTATIONS_TYPE))
-	if isNotIgnoredViolation(violations.REQUIRED_POD_ANNOTATIONS_TYPE) {
-		lib.Log.Info("   RequiredPodAnnotations: ", fmt.Sprintf("%v", lib.Cfg.RequiredPodAnnotations))
-		lib.Log.Info("   objectMeta.Annotations: ", fmt.Sprintf("%v", objectMeta.Annotations))
+func verifyPodAnnotations(name string, objectMeta metav1.ObjectMeta, entity *lib.ViolatableEntity) {
+	if isNotIgnoredViolation(name, violations.REQUIRED_POD_ANNOTATIONS_TYPE) {
 		for _, a := range lib.Cfg.RequiredPodAnnotations {
 			if _, ok := objectMeta.Annotations[a]; !ok {
 				entity.Violations = append(entity.Violations, violations.Violation{Source: a, Type: violations.REQUIRED_POD_ANNOTATIONS_TYPE})
