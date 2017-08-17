@@ -62,6 +62,9 @@ func GetBadNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []lib.Name
 			n.Violations = append(n.Violations, violations.Violation{Source: string(jsonString), Type: violations.NO_OWNER_ANNOTATION_TYPE})
 		}
 
+		verifyRequiredAnnotations(kn.ObjectMeta, &n.ViolatableEntity, violations.REQUIRED_NAMESPACE_ANNOTATIONS_TYPE, lib.Cfg.RequiredNamespaceAnnotations)
+		verifyRequiredLabels(kn.ObjectMeta, &n.ViolatableEntity, violations.REQUIRED_NAMESPACE_LABELS_TYPE, lib.Cfg.RequiredNamespaceLabels)
+
 		if len(n.ViolatableEntity.Violations) > 0 {
 			allBadNamespaces = append(allBadNamespaces, n)
 			if sendToKafka {

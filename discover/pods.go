@@ -62,7 +62,8 @@ func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
 		p.Cluster = lib.Cfg.ClusterName
 		p.Namespace = kp.Namespace
 		getVolumesWithHostPathForAPod(kp.Name, kp.Spec, &p.ViolatableEntity)
-		verifyPodAnnotations(kp.Name, kp.ObjectMeta, &p.ViolatableEntity)
+		verifyRequiredAnnotations(kp.ObjectMeta, &p.ViolatableEntity, violations.REQUIRED_POD_ANNOTATIONS_TYPE, lib.Cfg.RequiredPodAnnotations)
+		verifyRequiredLabels(kp.ObjectMeta, &p.ViolatableEntity, violations.REQUIRED_POD_LABELS_TYPE, lib.Cfg.RequiredPodLabels)
 		GetBadContainers(kp.Name, kp.Spec, &p.ViolatableEntity)
 
 		if len(p.Violations) > 0 {
@@ -106,15 +107,4 @@ func isIgnoredPodPrefix(podname string) bool {
 		}
 	}
 	return false
-}
-
-// verify whether a specific annotation(s) exists
-func verifyPodAnnotations(name string, objectMeta metav1.ObjectMeta, entity *lib.ViolatableEntity) {
-	if isNotIgnoredViolation(name, violations.REQUIRED_POD_ANNOTATIONS_TYPE) {
-		for _, a := range lib.Cfg.RequiredPodAnnotations {
-			if _, ok := objectMeta.Annotations[a]; !ok {
-				entity.Violations = append(entity.Violations, violations.Violation{Source: a, Type: violations.REQUIRED_POD_ANNOTATIONS_TYPE})
-			}
-		}
-	}
 }

@@ -2,7 +2,6 @@ package discover
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -60,7 +59,8 @@ func GetBadDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToKafka bool) []lib
 		d.Cluster = lib.Cfg.ClusterName
 		d.Namespace = kd.Namespace
 		getVolumesWithHostPathForAPod(kd.Name, kd.Spec.Template.Spec, &d.ViolatableEntity)
-		verifyPodAnnotations(kd.Name, kd.Spec.Template.ObjectMeta, &d.ViolatableEntity)
+		verifyRequiredAnnotations(kd.ObjectMeta, &d.ViolatableEntity, violations.REQUIRED_POD_ANNOTATIONS_TYPE, lib.Cfg.RequiredPodAnnotations)
+		verifyRequiredLabels(kd.ObjectMeta, &d.ViolatableEntity, violations.REQUIRED_POD_LABELS_TYPE, lib.Cfg.RequiredPodLabels)
 		GetBadContainers(kd.Name, kd.Spec.Template.Spec, &d.ViolatableEntity)
 
 		if len(d.ViolatableEntity.Violations) > 0 {
@@ -89,23 +89,17 @@ func isIgnoredDaemonSet(daemonSetName string) bool {
 }
 
 func verifyRequiredDaemonSets(theDaemonSets []v1beta1.DaemonSet) {
-	lib.Log.Info("verifyRequiredDaemonSets")
 	if isNotIgnoredViolation("", violations.REQUIRED_DAEMONSETS_TYPE) {
 		for _, a := range lib.Cfg.RequiredDaemonSets {
 			required := strings.Split(a, ":")
-			lib.Log.Info(fmt.Sprintf("   %v", required))
 			ds := lib.DaemonSet{}
 			found := false
 			for _, kd := range theDaemonSets {
-				lib.Log.Info(fmt.Sprintf("      Checking against namespace:%s, name:%s", kd.Namespace, kd.ObjectMeta.Name))
 				if (required[0] == kd.Namespace) && (required[1] == kd.ObjectMeta.Name) {
-					lib.Log.Info("      Found!!")
 					found = true
 					break
 				}
 			}
-
-			lib.Log.Info("   found was: ", required)
 			if !found {
 				ds.Name = required[1]
 				ds.Cluster = lib.Cfg.ClusterName

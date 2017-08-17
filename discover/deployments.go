@@ -53,7 +53,13 @@ func GetBadDeploys(theDeploys []v1beta1.Deployment, sendToKafka bool) []lib.Depl
 		d.Cluster = lib.Cfg.ClusterName
 		d.Namespace = kd.Namespace
 		getVolumesWithHostPathForAPod(kd.Name, kd.Spec.Template.Spec, &d.ViolatableEntity)
-		verifyPodAnnotations(kd.Name, kd.Spec.Template.ObjectMeta, &d.ViolatableEntity)
+
+		verifyRequiredAnnotations(kd.ObjectMeta, &d.ViolatableEntity, violations.REQUIRED_DEPLOYMENT_ANNOTATIONS_TYPE, lib.Cfg.RequiredDeploymentAnnotations)
+		verifyRequiredLabels(kd.ObjectMeta, &d.ViolatableEntity, violations.REQUIRED_DEPLOYMENT_LABELS_TYPE, lib.Cfg.RequiredDeploymentLabels)
+
+		verifyRequiredAnnotations(kd.Spec.Template.ObjectMeta, &d.ViolatableEntity, violations.REQUIRED_POD_ANNOTATIONS_TYPE, lib.Cfg.RequiredPodAnnotations)
+		verifyRequiredLabels(kd.Spec.Template.ObjectMeta, &d.ViolatableEntity, violations.REQUIRED_POD_LABELS_TYPE, lib.Cfg.RequiredPodLabels)
+
 		GetBadContainers(kd.Name, kd.Spec.Template.Spec, &d.ViolatableEntity)
 		if isValidReplicaSize(kd) == false && isNotIgnoredViolation(kd.Name, violations.SINGLE_REPLICA_TYPE) {
 			d.Violations = append(d.Violations, violations.Violation{Source: kd.Name, Type: violations.SINGLE_REPLICA_TYPE})
