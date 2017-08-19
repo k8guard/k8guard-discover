@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/k8guard/k8guard-discover/rules"
+
 	"github.com/k8guard/k8guard-discover/metrics"
 	lib "github.com/k8guard/k8guardlibs"
 	"github.com/k8guard/k8guardlibs/messaging/kafka"
@@ -42,7 +44,7 @@ func GetBadDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToKafka bool) []lib
 
 	cacheAllImages(true)
 
-	verifyRequiredDaemonSets(theDaemonSets)
+	allBadDaemonSets = append(allBadDaemonSets, verifyRequiredDaemonSets(theDaemonSets)...)
 
 	for _, kd := range theDaemonSets {
 
@@ -59,9 +61,11 @@ func GetBadDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToKafka bool) []lib
 		d.Cluster = lib.Cfg.ClusterName
 		d.Namespace = kd.Namespace
 		getVolumesWithHostPathForAPod(kd.Name, kd.Spec.Template.Spec, &d.ViolatableEntity)
-		verifyRequiredAnnotations(kd.ObjectMeta, &d.ViolatableEntity, violations.REQUIRED_POD_ANNOTATIONS_TYPE, lib.Cfg.RequiredPodAnnotations)
-		verifyRequiredLabels(kd.ObjectMeta, &d.ViolatableEntity, violations.REQUIRED_POD_LABELS_TYPE, lib.Cfg.RequiredPodLabels)
-		GetBadContainers(kd.Name, kd.Spec.Template.Spec, &d.ViolatableEntity)
+
+		verifyRequiredAnnotations(kd.ObjectMeta.Annotations, &d.ViolatableEntity, "daemonset", violations.REQUIRED_DAEMONSET_ANNOTATIONS_TYPE)
+		verifyRequiredLabels(kd.ObjectMeta.Labels, &d.ViolatableEntity, "daemonset", violations.REQUIRED_DAEMONSET_LABELS_TYPE)
+
+		GetBadContainers(kd.Namespace, "daemonset", kd.Spec.Template.Spec, &d.ViolatableEntity)
 
 		if len(d.ViolatableEntity.Violations) > 0 {
 			allBadDaemonSets = append(allBadDaemonSets, d)
@@ -88,24 +92,39 @@ func isIgnoredDaemonSet(daemonSetName string) bool {
 	return false
 }
 
-func verifyRequiredDaemonSets(theDaemonSets []v1beta1.DaemonSet) {
-	if isNotIgnoredViolation("", violations.REQUIRED_DAEMONSETS_TYPE) {
-		for _, a := range lib.Cfg.RequiredDaemonSets {
-			required := strings.Split(a, ":")
-			ds := lib.DaemonSet{}
-			found := false
-			for _, kd := range theDaemonSets {
-				if (required[0] == kd.Namespace) && (required[1] == kd.ObjectMeta.Name) {
-					found = true
-					break
+func verifyRequiredDaemonSets(theDaemonSets []v1beta1.DaemonSet) []lib.DaemonSet {
+	entityType := "daemonset"
+	badDaemonSets := []lib.DaemonSet{}
+
+	for _, ns := range GetAllNamespacesFromApi() {
+		if rules.IsNotIgnoredViolation(ns.Name, entityType, violations.REQUIRED_ENTITIES_TYPE) {
+			for _, a := range lib.Cfg.RequiredEntities {
+				rule := strings.Split(a, ":")
+
+				// does the rule apply to this namespace and entity type?
+				if !(rules.Exact(ns.Name, rule[0]) && rules.Exact(entityType, rule[1])) {
+					continue
 				}
-			}
-			if !found {
-				ds.Name = required[1]
-				ds.Cluster = lib.Cfg.ClusterName
-				ds.Namespace = required[0]
-				ds.ViolatableEntity.Violations = append(ds.ViolatableEntity.Violations, violations.Violation{Source: a, Type: violations.REQUIRED_DAEMONSETS_TYPE})
+
+				found := false
+				for _, kd := range theDaemonSets {
+					if rules.Exact(kd.ObjectMeta.Namespace, rule[0]) && rules.Exact(kd.ObjectMeta.Name, rule[2]) {
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					ds := lib.DaemonSet{}
+					ds.Name = rule[2]
+					ds.Cluster = lib.Cfg.ClusterName
+					ds.Namespace = ns.Name
+					ds.ViolatableEntity.Violations = append(ds.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_DAEMONSETS_TYPE})
+					badDaemonSets = append(badDaemonSets, ds)
+				}
 			}
 		}
 	}
+
+	return badDaemonSets
 }

@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/k8guard/k8guard-discover/metrics"
+	"github.com/k8guard/k8guard-discover/rules"
 	lib "github.com/k8guard/k8guardlibs"
 	"github.com/k8guard/k8guardlibs/messaging/kafka"
 	"github.com/k8guard/k8guardlibs/violations"
@@ -62,13 +63,13 @@ func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
 		p.Cluster = lib.Cfg.ClusterName
 		p.Namespace = kp.Namespace
 		getVolumesWithHostPathForAPod(kp.Name, kp.Spec, &p.ViolatableEntity)
-		verifyRequiredAnnotations(kp.ObjectMeta, &p.ViolatableEntity, violations.REQUIRED_POD_ANNOTATIONS_TYPE, lib.Cfg.RequiredPodAnnotations)
-		verifyRequiredLabels(kp.ObjectMeta, &p.ViolatableEntity, violations.REQUIRED_POD_LABELS_TYPE, lib.Cfg.RequiredPodLabels)
-		GetBadContainers(kp.Name, kp.Spec, &p.ViolatableEntity)
+		verifyRequiredAnnotations(kp.ObjectMeta.Annotations, &p.ViolatableEntity, "pod", violations.REQUIRED_POD_ANNOTATIONS_TYPE)
+		verifyRequiredLabels(kp.ObjectMeta.Labels, &p.ViolatableEntity, "pod", violations.REQUIRED_POD_LABELS_TYPE)
+		GetBadContainers(kp.Namespace, "pod", kp.Spec, &p.ViolatableEntity)
 
 		if len(p.Violations) > 0 {
 
-			badPodsCounter += 1
+			badPodsCounter++
 			allBadPodsWitoutOwner = append(allBadPodsWitoutOwner, p)
 			if sendToKafka {
 				lib.Log.Debug("Sending ", p.Name, " to kafka")
@@ -90,8 +91,8 @@ func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
 }
 
 // gets a list of entity and fills the host type violations for them
-func getVolumesWithHostPathForAPod(name string, spec v1.PodSpec, entity *lib.ViolatableEntity) {
-	if isNotIgnoredViolation(name, violations.HOST_VOLUMES_TYPE) {
+func getVolumesWithHostPathForAPod(namespace string, spec v1.PodSpec, entity *lib.ViolatableEntity) {
+	if rules.IsNotIgnoredViolation(entity.Namespace, "pod", violations.HOST_VOLUMES_TYPE) {
 		for _, v := range spec.Volumes {
 			if v.HostPath != nil {
 				entity.Violations = append(entity.Violations, violations.Violation{Source: v.Name, Type: violations.HOST_VOLUMES_TYPE})

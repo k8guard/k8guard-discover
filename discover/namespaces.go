@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/k8guard/k8guard-discover/metrics"
+	"github.com/k8guard/k8guard-discover/rules"
 	lib "github.com/k8guard/k8guardlibs"
 	"github.com/k8guard/k8guardlibs/messaging/kafka"
 	"github.com/k8guard/k8guardlibs/violations"
@@ -22,7 +23,7 @@ func isIgnoredNamespace(namespace string) bool {
 	return false
 }
 
-func GetAllNamspacesFromApi() []v1.Namespace {
+func GetAllNamespacesFromApi() []v1.Namespace {
 	namespaces := Clientset.Namespaces()
 
 	namespaceList, err := namespaces.List(metav1.ListOptions{})
@@ -43,6 +44,8 @@ func GetBadNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []lib.Name
 
 	allBadNamespaces := []lib.Namespace{}
 
+	allBadNamespaces = append(allBadNamespaces, verifyRequiredNamespaces(theNamespaces)...)
+
 	for _, kn := range theNamespaces {
 		if isIgnoredNamespace(kn.Namespace) == true {
 			continue
@@ -53,7 +56,9 @@ func GetBadNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []lib.Name
 		n.Cluster = lib.Cfg.ClusterName
 		// this one feels weird but to be consistent
 
-		if hasOwnerAnnotation(kn, lib.Cfg.AnnotationFormatForEmails) == false && hasOwnerAnnotation(kn, lib.Cfg.AnnotationFormatForChatIds) == false && isNotIgnoredViolation(kn.Name, violations.NO_OWNER_ANNOTATION_TYPE) {
+		if hasOwnerAnnotation(kn, lib.Cfg.AnnotationFormatForEmails) == false &&
+			hasOwnerAnnotation(kn, lib.Cfg.AnnotationFormatForChatIds) == false &&
+			rules.IsNotIgnoredViolation(kn.Name, "namespace", violations.NO_OWNER_ANNOTATION_TYPE) {
 			jsonString, err := json.Marshal(kn.Annotations)
 			if err != nil {
 				lib.Log.Error("Can not convert annotation to a valid json ", err)
@@ -62,8 +67,8 @@ func GetBadNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []lib.Name
 			n.Violations = append(n.Violations, violations.Violation{Source: string(jsonString), Type: violations.NO_OWNER_ANNOTATION_TYPE})
 		}
 
-		verifyRequiredAnnotations(kn.ObjectMeta, &n.ViolatableEntity, violations.REQUIRED_NAMESPACE_ANNOTATIONS_TYPE, lib.Cfg.RequiredNamespaceAnnotations)
-		verifyRequiredLabels(kn.ObjectMeta, &n.ViolatableEntity, violations.REQUIRED_NAMESPACE_LABELS_TYPE, lib.Cfg.RequiredNamespaceLabels)
+		verifyRequiredAnnotations(kn.ObjectMeta.Annotations, &n.ViolatableEntity, "namespace", violations.REQUIRED_NAMESPACE_ANNOTATIONS_TYPE)
+		verifyRequiredLabels(kn.ObjectMeta.Labels, &n.ViolatableEntity, "namespace", violations.REQUIRED_NAMESPACE_LABELS_TYPE)
 
 		if len(n.ViolatableEntity.Violations) > 0 {
 			allBadNamespaces = append(allBadNamespaces, n)
@@ -90,4 +95,37 @@ func hasOwnerAnnotation(namespace v1.Namespace, annotationKind string) bool {
 		}
 	}
 	return false
+}
+
+func verifyRequiredNamespaces(theNamespaces []v1.Namespace) []lib.Namespace {
+	badNamespaces := []lib.Namespace{}
+
+	for _, a := range lib.Cfg.RequiredEntities {
+		rule := strings.Split(a, ":")
+
+		// does the rule apply to this entity type?
+		if !rules.Exact("namespace", rule[1]) {
+			continue
+		}
+
+		found := false
+		for _, kn := range theNamespaces {
+			if rules.Exact(kn.ObjectMeta.Namespace, rule[0]) && rules.Exact("namespace", rule[1]) &&
+				rules.Exact(kn.ObjectMeta.Name, rule[2]) {
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			ns := lib.Namespace{}
+			ns.Name = rule[2]
+			ns.Cluster = lib.Cfg.ClusterName
+			ns.Namespace = ns.Name
+			ns.ViolatableEntity.Violations = append(ns.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_NAMESPACES_TYPE})
+			badNamespaces = append(badNamespaces, ns)
+		}
+	}
+
+	return badNamespaces
 }

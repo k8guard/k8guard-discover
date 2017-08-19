@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/k8guard/k8guard-discover/metrics"
+	"github.com/k8guard/k8guard-discover/rules"
 	lib "github.com/k8guard/k8guardlibs"
 	"github.com/k8guard/k8guardlibs/messaging/kafka"
 	"github.com/k8guard/k8guardlibs/violations"
@@ -39,7 +40,7 @@ func GetBadIngresses(allIngresses []v1beta1.Ingress, sendToKafka bool) []lib.Ing
 		in.Namespace = kin.Namespace
 
 		for _, rule := range kin.Spec.Rules {
-			isBadIngressRule(kin.Name, rule, &in)
+			isBadIngressRule(kin.Namespace, rule, &in)
 		}
 
 		if len(in.Violations) > 0 {
@@ -60,9 +61,9 @@ func GetBadIngresses(allIngresses []v1beta1.Ingress, sendToKafka bool) []lib.Ing
 
 }
 
-func isBadIngressRule(name string, rule v1beta1.IngressRule, ingress *lib.Ingress) bool {
+func isBadIngressRule(namespace string, rule v1beta1.IngressRule, ingress *lib.Ingress) bool {
 
-	if isNotIgnoredViolation(name, violations.INGRESS_HOST_INVALID_TYPE) {
+	if rules.IsNotIgnoredViolation(namespace, "ingress", violations.INGRESS_HOST_INVALID_TYPE) {
 		for _, s := range lib.Cfg.IngressMustContain {
 			if strings.Contains(rule.Host, s) != true {
 				ingress.Violations = append(ingress.Violations, violations.Violation{Source: rule.Host, Type: violations.INGRESS_HOST_INVALID_TYPE})

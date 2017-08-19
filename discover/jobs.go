@@ -61,7 +61,7 @@ func GetBadCronJobs(allCronJobs []v2alpha1.CronJob, sendToKafka bool) []lib.Cron
 		cj.Cluster = lib.Cfg.ClusterName
 		cj.Namespace = kcj.Namespace
 		getVolumesWithHostPathForAPod(kcj.Name, kcj.Spec.JobTemplate.Spec.Template.Spec, &cj.ViolatableEntity)
-		GetBadContainers(kcj.Name, kcj.Spec.JobTemplate.Spec.Template.Spec, &cj.ViolatableEntity)
+		GetBadContainers(kcj.Namespace, "cronjob", kcj.Spec.JobTemplate.Spec.Template.Spec, &cj.ViolatableEntity)
 
 		if len(cj.Violations) > 0 {
 			allBadCronJobs = append(allBadCronJobs, cj)
@@ -108,7 +108,7 @@ func GetBadJobs(allJobs []batch.Job, sendToKafka bool) []lib.Job {
 		j.Cluster = lib.Cfg.ClusterName
 		j.Namespace = kj.Namespace
 		getVolumesWithHostPathForAPod(kj.Name, kj.Spec.Template.Spec, &j.ViolatableEntity)
-		GetBadContainers(kj.Name, kj.Spec.Template.Spec, &j.ViolatableEntity)
+		GetBadContainers(kj.Namespace, "job", kj.Spec.Template.Spec, &j.ViolatableEntity)
 
 		if len(j.Violations) > 0 {
 

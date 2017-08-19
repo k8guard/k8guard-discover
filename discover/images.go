@@ -3,10 +3,10 @@ package discover
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/k8guard/k8guard-discover/metrics"
+	"github.com/k8guard/k8guard-discover/rules"
 	lib "github.com/k8guard/k8guardlibs"
 	"github.com/prometheus/client_golang/prometheus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -56,13 +56,9 @@ func cacheAllImages(storeInMemcached bool) {
 
 }
 
-func isValidImageRepo(imageName string) bool {
-	for _, i := range lib.Cfg.ApprovedImageRepos {
-		if strings.Contains(imageName, i) {
-			return true
-		}
-	}
-	return false
+func isValidImageRepo(namespace string, entity string, imageName string) bool {
+	match, _ := rules.IsValueMatchContainsRule(namespace, entity, imageName, lib.Cfg.ApprovedImageRepos)
+	return match
 }
 
 func isValidImageSize(imageSizeByte int64) bool {
