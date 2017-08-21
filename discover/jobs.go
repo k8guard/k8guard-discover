@@ -25,6 +25,11 @@ func GetAllJobFromApi() []batch.Job {
 }
 
 func GetAllCronJobFromApi() []v2alpha1.CronJob {
+	if lib.Cfg.IncludeAlpha == false {
+		lib.Log.Debug("Ignoring GetAllCronJobFromApi as alpha features are not enabled.")
+		return []v2alpha1.CronJob{}
+	}
+
 	cronjobs, err := Clientset.BatchV2alpha1().CronJobs(lib.Cfg.Namespace).List(metav1.ListOptions{})
 
 	if err != nil {
@@ -55,8 +60,8 @@ func GetBadCronJobs(allCronJobs []v2alpha1.CronJob, sendToKafka bool) []lib.Cron
 		cj.Name = kcj.Name
 		cj.Cluster = lib.Cfg.ClusterName
 		cj.Namespace = kcj.Namespace
-		getVolumesWithHostPathForAPod(kcj.Spec.JobTemplate.Spec.Template.Spec, &cj.ViolatableEntity)
-		GetBadContainers(kcj.Spec.JobTemplate.Spec.Template.Spec, &cj.ViolatableEntity)
+		getVolumesWithHostPathForAPod(kcj.Name, kcj.Spec.JobTemplate.Spec.Template.Spec, &cj.ViolatableEntity)
+		GetBadContainers(kcj.Namespace, "cronjob", kcj.Spec.JobTemplate.Spec.Template.Spec, &cj.ViolatableEntity)
 
 		if len(cj.Violations) > 0 {
 			allBadCronJobs = append(allBadCronJobs, cj)
@@ -102,8 +107,8 @@ func GetBadJobs(allJobs []batch.Job, sendToKafka bool) []lib.Job {
 		j.Name = kj.Name
 		j.Cluster = lib.Cfg.ClusterName
 		j.Namespace = kj.Namespace
-		getVolumesWithHostPathForAPod(kj.Spec.Template.Spec, &j.ViolatableEntity)
-		GetBadContainers(kj.Spec.Template.Spec, &j.ViolatableEntity)
+		getVolumesWithHostPathForAPod(kj.Name, kj.Spec.Template.Spec, &j.ViolatableEntity)
+		GetBadContainers(kj.Namespace, "job", kj.Spec.Template.Spec, &j.ViolatableEntity)
 
 		if len(j.Violations) > 0 {
 

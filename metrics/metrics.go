@@ -19,6 +19,7 @@ import (
 const (
 	ALL_NAMESPACE_COUNT  string = "k8guard_all_namespace_count"
 	ALL_DEPLOYMENT_COUNT string = "k8guard_all_deployment_count"
+	ALL_DAEMONSET_COUNT  string = "k8guard_all_daemonset_count"
 	ALL_POD_COUNT        string = "k8guard_all_pod_count"
 	ALL_IMAGE_COUNT      string = "k8guard_all_image_count"
 	ALL_INGRESSES_COUNT  string = "k8guard_all_ingresses_count"
@@ -29,6 +30,7 @@ const (
 	BAD_POD_COUNT          string = "k8guard_bad_pod_count"
 	BAD_POD_WO_OWNER_COUNT string = "k8guard_bad_pod_wo_owner_count"
 	BAD_DEPLOYMENT_COUNT   string = "k8guard_bad_deployment_count"
+	BAD_DAEMONSET_COUNT    string = "k8guard_bad_daemonset_count"
 	BAD_INGRESSES_COUNT    string = "k8guard_bad_ingresses_count"
 	BAD_JOB_COUNT          string = "k8guard_bad_job_count"
 	BAD_JOB_WO_OWNER_COUNT string = "k8guard_bad_job_wo_owner_count"
@@ -50,6 +52,13 @@ var (
 		prometheus.GaugeOpts{
 			Name: ALL_DEPLOYMENT_COUNT,
 			Help: "the number of all deployments",
+		},
+	)
+
+	AllDaemonSetCountGauge = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: ALL_DAEMONSET_COUNT,
+			Help: "the number of all daemonsets",
 		},
 	)
 
@@ -115,6 +124,13 @@ var (
 			Help: "the number of bad deployments",
 		},
 	)
+
+	BadDaemonSetCountGauge = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: BAD_DAEMONSET_COUNT,
+			Help: "the number of bad daemonsets",
+		},
+	)
 	BadIngressesCountGauge = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: BAD_INGRESSES_COUNT,
@@ -147,7 +163,7 @@ var (
 	FNGetBadNamespaces = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "fn_get_bad_namespaces_duration",
-			Help: "time took for GetBadDeploys",
+			Help: "time took for GetBadNamespaces",
 		},
 	)
 
@@ -161,6 +177,12 @@ var (
 		prometheus.GaugeOpts{
 			Name: "fn_get_bad_deploys_duration",
 			Help: "time took for GetBadDeploys",
+		},
+	)
+	FNGetBadDaemonSets = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "fn_get_bad_daemonsets_duration",
+			Help: "time took for GetBadDaemonSets",
 		},
 	)
 	FNGetBadPods = prometheus.NewGauge(
@@ -195,12 +217,14 @@ func PromRegister() {
 	prometheus.MustRegister(AllPodCountGauge)
 	prometheus.MustRegister(AllImageCountGauge)
 	prometheus.MustRegister(AllDeploymentCountGauge)
+	prometheus.MustRegister(AllDaemonSetCountGauge)
 	prometheus.MustRegister(AllIngressesGauge)
 	prometheus.MustRegister(AllJobsGauge)
 	prometheus.MustRegister(AllCronJobsGauge)
 
 	prometheus.MustRegister(BadNamespaceCountGauge)
 	prometheus.MustRegister(BadDeploymentCountGauge)
+	prometheus.MustRegister(BadDaemonSetCountGauge)
 	prometheus.MustRegister(BadPodCountGauge)
 	prometheus.MustRegister(BadPodWoOwnerGauge)
 	prometheus.MustRegister(BadIngressesCountGauge)
@@ -211,6 +235,7 @@ func PromRegister() {
 	// Function Metrics
 	prometheus.MustRegister(FNCacheAllImagesGauge)
 	prometheus.MustRegister(FNGetBadDeploys)
+	prometheus.MustRegister(FNGetBadDaemonSets)
 	prometheus.MustRegister(FNGetBadIngresses)
 	prometheus.MustRegister(FNGetBadPods)
 	prometheus.MustRegister(FNGetBadJobs)
@@ -221,8 +246,8 @@ func PromRegister() {
 // step 4
 func PromMetricsHandler(w http.ResponseWriter, r *http.Request) {
 	myList := []string{
-		ALL_NAMESPACE_COUNT, ALL_DEPLOYMENT_COUNT, ALL_POD_COUNT, ALL_IMAGE_COUNT, ALL_INGRESSES_COUNT, ALL_JOB_COUNT,
-		ALL_CRONJOB_COUNT, BAD_NAMESPACE_COUNT, BAD_POD_COUNT, BAD_DEPLOYMENT_COUNT, BAD_POD_WO_OWNER_COUNT, BAD_INGRESSES_COUNT,
+		ALL_NAMESPACE_COUNT, ALL_DEPLOYMENT_COUNT, ALL_DAEMONSET_COUNT, ALL_POD_COUNT, ALL_IMAGE_COUNT, ALL_INGRESSES_COUNT, ALL_JOB_COUNT,
+		ALL_CRONJOB_COUNT, BAD_NAMESPACE_COUNT, BAD_POD_COUNT, BAD_DEPLOYMENT_COUNT, BAD_DAEMONSET_COUNT, BAD_POD_WO_OWNER_COUNT, BAD_INGRESSES_COUNT,
 		BAD_JOB_COUNT, BAD_JOB_WO_OWNER_COUNT, BAD_CRONJOB_COUNT,
 	}
 	for _, i := range myList {
@@ -243,6 +268,9 @@ func PromMetricsHandler(w http.ResponseWriter, r *http.Request) {
 		case ALL_DEPLOYMENT_COUNT:
 			AllDeploymentCountGauge.Set(parsedCount)
 			break
+		case ALL_DAEMONSET_COUNT:
+			AllDaemonSetCountGauge.Set(parsedCount)
+			break
 		case ALL_IMAGE_COUNT:
 			AllImageCountGauge.Set(parsedCount)
 			break
@@ -261,6 +289,9 @@ func PromMetricsHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		case BAD_DEPLOYMENT_COUNT:
 			BadDeploymentCountGauge.Set(parsedCount)
+			break
+		case BAD_DAEMONSET_COUNT:
+			BadDaemonSetCountGauge.Set(parsedCount)
 			break
 		case BAD_POD_COUNT:
 			BadPodCountGauge.Set(parsedCount)

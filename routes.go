@@ -50,7 +50,7 @@ func startHttpServer() {
 			Version string
 		}
 
-		data := myRoute{Cluster: lib.Cfg.ClusterName, Names: []string{"namespaces", "deploys", "podswo", "ingresses", "jobs", "cronjobs", "config", "metrics", "version"}, Version: Version + "_" + Build}
+		data := myRoute{Cluster: lib.Cfg.ClusterName, Names: []string{"namespaces", "deploys", "daemonsets", "podswo", "ingresses", "jobs", "cronjobs", "config", "metrics", "version"}, Version: Version + "_" + Build}
 
 		t := template.New("Index Template")
 		t, err := t.Parse(templates.INDEX_TEMPLATE_DISCOVER)
@@ -89,6 +89,23 @@ func startHttpServer() {
 			renderJSONString(w, r, cachedBadDeploys.Value)
 		} else {
 			renderJSONString(w, r, cachedBadDeploys.Value)
+		}
+
+	})
+
+	r.Get("/daemonsets", func(w http.ResponseWriter, r *http.Request) {
+		cachedBadDaemonSets, err := Memcached.Get("cached_bad_daemonsets")
+		if err != nil {
+			response, _ := json.Marshal(discover.GetBadDaemonSets(discover.GetAllDaemonSetFromApi(), false))
+			Memcached.Set(&memcache.Item{Key: "cached_bad_daemonsets", Expiration: 300, Value: []byte(response)})
+			cachedBadDaemonSets, err = Memcached.Get("cached_bad_daemonsets")
+			if err != nil {
+				panic(err)
+			}
+
+			renderJSONString(w, r, cachedBadDaemonSets.Value)
+		} else {
+			renderJSONString(w, r, cachedBadDaemonSets.Value)
 		}
 
 	})
@@ -163,7 +180,7 @@ func startHttpServer() {
 	r.Get("/namespaces", func(w http.ResponseWriter, r *http.Request) {
 		cachedBadNamespaces, err := Memcached.Get("cached_bad_namespaces")
 		if err != nil {
-			response, _ := json.Marshal(discover.GetBadNamespaces(discover.GetAllNamspacesFromApi(), false))
+			response, _ := json.Marshal(discover.GetBadNamespaces(discover.GetAllNamespacesFromApi(), false))
 			Memcached.Set(&memcache.Item{Key: "cached_bad_namespaces", Expiration: 300, Value: []byte(response)})
 			cachedBadNamespaces, err = Memcached.Get("cached_bad_namespaces")
 			if err != nil {
