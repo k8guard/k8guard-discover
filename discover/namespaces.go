@@ -110,7 +110,7 @@ func verifyRequiredNamespaces(theNamespaces []v1.Namespace) []lib.Namespace {
 
 		found := false
 		for _, kn := range theNamespaces {
-			if rules.Exact(kn.ObjectMeta.Name, rule[3]) {
+			if rules.Exact(kn.ObjectMeta.Name, rule[2]) {
 				found = true
 				break
 			}
@@ -118,10 +118,10 @@ func verifyRequiredNamespaces(theNamespaces []v1.Namespace) []lib.Namespace {
 
 		if !found {
 			ns := lib.Namespace{}
-			ns.Name = rule[3]
+			ns.Name = rule[2]
 			ns.Cluster = lib.Cfg.ClusterName
 			ns.Namespace = ns.Name
-			ns.ViolatableEntity.Violations = append(ns.ViolatableEntity.Violations, violations.Violation{Source: rule[3], Type: violations.REQUIRED_NAMESPACES_TYPE})
+			ns.ViolatableEntity.Violations = append(ns.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_NAMESPACES_TYPE})
 			badNamespaces = append(badNamespaces, ns)
 		}
 	}

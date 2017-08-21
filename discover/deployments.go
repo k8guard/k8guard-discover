@@ -116,7 +116,7 @@ func verifyRequiredDeployments(theDeployments []v1beta1.Deployment) []lib.Deploy
 
 				found := false
 				for _, kd := range theDeployments {
-					if rules.Exact(kd.ObjectMeta.Namespace, rule[0]) && rules.Exact(kd.ObjectMeta.Name, rule[3]) {
+					if rules.Exact(kd.ObjectMeta.Namespace, rule[0]) && rules.Exact(kd.ObjectMeta.Name, rule[2]) {
 						found = true
 						break
 					}
@@ -124,10 +124,10 @@ func verifyRequiredDeployments(theDeployments []v1beta1.Deployment) []lib.Deploy
 
 				if !found {
 					ds := lib.Deployment{}
-					ds.Name = rule[3]
+					ds.Name = rule[2]
 					ds.Cluster = lib.Cfg.ClusterName
 					ds.Namespace = ns.Name
-					ds.ViolatableEntity.Violations = append(ds.ViolatableEntity.Violations, violations.Violation{Source: rule[3], Type: violations.REQUIRED_DEPLOYMENTS_TYPE})
+					ds.ViolatableEntity.Violations = append(ds.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_DEPLOYMENTS_TYPE})
 					badDeployments = append(badDeployments, ds)
 				}
 			}
