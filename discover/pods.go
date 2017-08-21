@@ -92,7 +92,7 @@ func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
 
 // gets a list of entity and fills the host type violations for them
 func getVolumesWithHostPathForAPod(namespace string, spec v1.PodSpec, entity *lib.ViolatableEntity) {
-	if rules.IsNotIgnoredViolation(entity.Namespace, "pod", violations.HOST_VOLUMES_TYPE) {
+	if rules.IsNotIgnoredViolation(entity.Namespace, "pod", entity.Name, violations.HOST_VOLUMES_TYPE) {
 		for _, v := range spec.Volumes {
 			if v.HostPath != nil {
 				entity.Violations = append(entity.Violations, violations.Violation{Source: v.Name, Type: violations.HOST_VOLUMES_TYPE})

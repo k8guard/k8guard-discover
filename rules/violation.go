@@ -1,7 +1,6 @@
 package rules
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -12,30 +11,27 @@ import (
 const NEGATED_RULE = "!"
 const ALLOW_ALL_RULE = "*"
 
-func IsNotIgnoredViolation(namespace string, entity string, vt vlib.ViolationType) bool {
-	ignored, _ := IsValueMatchExactRule(namespace, entity, string(vt), lib.Cfg.IgnoredViolations)
+func IsNotIgnoredViolation(namespace string, entityType string, entityName string, vt vlib.ViolationType) bool {
+	ignored, _ := IsValueMatchExactRule(namespace, entityType, entityName, string(vt), lib.Cfg.IgnoredViolations)
 	return !ignored
 }
 
-func IsValuesMatchesRequiredRule(namespace string, entity string, values map[string]string, violationConfig []string) (bool, string, error) {
+func IsValuesMatchesRequiredRule(namespace string, entityType string, entityName string, values map[string]string, violationConfig []string) (bool, string, error) {
 	for _, r := range violationConfig {
 		rule := strings.Split(r, ":")
 
-		// if len(rule) != 3 {
-		// 	return false, "", errors.New(fmt.Sprintf("Incorrect format for violation rule: %v", violationConfig))
-		// }
 		if len(rule) == 1 {
 			// a length of 1 is for backwards compatibility, and is a global config (across all namespaces and entity types
 			if _, ok := values[rule[0]]; !ok {
 				return false, rule[0], nil
 			}
-		} else if len(rule) == 3 {
+		} else if len(rule) == 4 {
 			// does the rule apply to this namespace and entity type?
-			if !(Exact(namespace, rule[0]) && Exact(entity, rule[1])) {
+			if !(Exact(namespace, rule[0]) && Exact(entityType, rule[1]) && Exact(entityName, rule[2])) {
 				continue
 			}
-			if _, ok := values[rule[2]]; !ok {
-				return false, rule[2], nil
+			if _, ok := values[rule[3]]; !ok {
+				return false, rule[3], nil
 			}
 		} else {
 			return false, "", fmt.Errorf("Incorrect format for violation rule: %v", violationConfig)
@@ -44,16 +40,16 @@ func IsValuesMatchesRequiredRule(namespace string, entity string, values map[str
 	return true, "", nil
 }
 
-func IsValueMatchExactRule(namespace string, entity string, value string, violationConfig []string) (bool, error) {
+func IsValueMatchExactRule(namespace string, entityType string, entityName string, value string, violationConfig []string) (bool, error) {
 	for _, ignoredV := range violationConfig {
 		rule := strings.Split(ignoredV, ":")
 
 		if len(rule) == 1 {
 			// a length of 1 is for backwards compatibility, and is a global config (across all namespaces and entity types
 			return Exact(value, rule[0]), nil
-		} else if len(rule) == 3 {
+		} else if len(rule) == 4 {
 			// denotes namespace, entity and value
-			return Exact(namespace, rule[0]) && Exact(entity, rule[1]) && Exact(value, rule[2]), nil
+			return Exact(namespace, rule[0]) && Exact(entityType, rule[1]) && Exact(entityName, rule[2]) && Exact(value, rule[3]), nil
 		} else {
 			return false, fmt.Errorf("Incorrect format for violation rule: %v", violationConfig)
 		}
@@ -61,33 +57,33 @@ func IsValueMatchExactRule(namespace string, entity string, value string, violat
 	return false, nil
 }
 
-func IsValueMatchLikeRule(namespace string, entity string, value string, violationConfig []string) (bool, error) {
+func IsValueMatchLikeRule(namespace string, entityType string, entityName string, value string, violationConfig []string) (bool, error) {
 	for _, ignoredV := range violationConfig {
 		rule := strings.Split(ignoredV, ":")
 
 		if len(rule) == 1 {
 			// a length of 1 is for backwards compatibility, and is a global config (across all namespaces and entity types
 			return Like(value, rule[0]), nil
-		} else if len(rule) == 3 {
+		} else if len(rule) == 4 {
 			// denotes namespace, entity and value
-			return Exact(namespace, rule[0]) && Exact(entity, rule[1]) && Like(value, rule[2]), nil
+			return Exact(namespace, rule[0]) && Exact(entityType, rule[1]) && Exact(entityName, rule[2]) && Like(value, rule[3]), nil
 		} else {
-			return false, errors.New(fmt.Sprintf("Incorrect format for violation rule: %v", violationConfig))
+			return false, fmt.Errorf("Incorrect format for violation rule: %v", violationConfig)
 		}
 	}
 	return false, nil
 }
 
-func IsValueMatchContainsRule(namespace string, entity string, value string, violationConfig []string) (bool, error) {
+func IsValueMatchContainsRule(namespace string, entityType string, entityName string, value string, violationConfig []string) (bool, error) {
 	for _, ignoredV := range violationConfig {
 		rule := strings.Split(ignoredV, ":")
 
 		if len(rule) == 1 {
 			// a length of 1 is for backwards compatibility, and is a global config (across all namespaces and entity types
 			return Contains(value, rule[0]), nil
-		} else if len(rule) == 3 {
+		} else if len(rule) == 4 {
 			// denotes namespace, entity and value
-			return Exact(namespace, rule[0]) && Exact(entity, rule[1]) && Contains(value, rule[2]), nil
+			return Exact(namespace, rule[0]) && Exact(entityType, rule[1]) && Exact(entityName, rule[2]) && Contains(value, rule[3]), nil
 		} else {
 			return false, fmt.Errorf("Incorrect format for violation rule: %v", violationConfig)
 		}

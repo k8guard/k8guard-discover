@@ -64,7 +64,7 @@ func GetBadDeploys(theDeploys []v1beta1.Deployment, sendToKafka bool) []lib.Depl
 		verifyRequiredLabels(kd.Spec.Template.ObjectMeta.Labels, &d.ViolatableEntity, "pod", violations.REQUIRED_POD_LABELS_TYPE)
 
 		GetBadContainers(kd.Namespace, "deployment", kd.Spec.Template.Spec, &d.ViolatableEntity)
-		if isValidReplicaSize(kd) == false && rules.IsNotIgnoredViolation(kd.Namespace, "deployment", violations.SINGLE_REPLICA_TYPE) {
+		if isValidReplicaSize(kd) == false && rules.IsNotIgnoredViolation(kd.Namespace, "deployment", kd.Name, violations.SINGLE_REPLICA_TYPE) {
 			d.Violations = append(d.Violations, violations.Violation{Source: kd.Name, Type: violations.SINGLE_REPLICA_TYPE})
 		}
 
@@ -105,7 +105,7 @@ func verifyRequiredDeployments(theDeployments []v1beta1.Deployment) []lib.Deploy
 	badDeployments := []lib.Deployment{}
 
 	for _, ns := range GetAllNamespacesFromApi() {
-		if rules.IsNotIgnoredViolation(ns.Name, entityType, violations.REQUIRED_ENTITIES_TYPE) {
+		if rules.IsNotIgnoredViolation(ns.Name, entityType, "*", violations.REQUIRED_ENTITIES_TYPE) {
 			for _, a := range lib.Cfg.RequiredEntities {
 				rule := strings.Split(a, ":")
 
@@ -116,7 +116,7 @@ func verifyRequiredDeployments(theDeployments []v1beta1.Deployment) []lib.Deploy
 
 				found := false
 				for _, kd := range theDeployments {
-					if rules.Exact(kd.ObjectMeta.Namespace, rule[0]) && rules.Exact(kd.ObjectMeta.Name, rule[2]) {
+					if rules.Exact(kd.ObjectMeta.Namespace, rule[0]) && rules.Exact(kd.ObjectMeta.Name, rule[3]) {
 						found = true
 						break
 					}
@@ -124,10 +124,10 @@ func verifyRequiredDeployments(theDeployments []v1beta1.Deployment) []lib.Deploy
 
 				if !found {
 					ds := lib.Deployment{}
-					ds.Name = rule[2]
+					ds.Name = rule[3]
 					ds.Cluster = lib.Cfg.ClusterName
 					ds.Namespace = ns.Name
-					ds.ViolatableEntity.Violations = append(ds.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_DEPLOYMENTS_TYPE})
+					ds.ViolatableEntity.Violations = append(ds.ViolatableEntity.Violations, violations.Violation{Source: rule[3], Type: violations.REQUIRED_DEPLOYMENTS_TYPE})
 					badDeployments = append(badDeployments, ds)
 				}
 			}

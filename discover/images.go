@@ -56,8 +56,8 @@ func cacheAllImages(storeInMemcached bool) {
 
 }
 
-func isValidImageRepo(namespace string, entity string, imageName string) bool {
-	match, _ := rules.IsValueMatchContainsRule(namespace, entity, imageName, lib.Cfg.ApprovedImageRepos)
+func isValidImageRepo(namespace string, entityType string, entityName string, imageName string) bool {
+	match, _ := rules.IsValueMatchContainsRule(namespace, entityType, entityName, imageName, lib.Cfg.ApprovedImageRepos)
 	return match
 }
 

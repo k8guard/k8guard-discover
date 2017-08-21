@@ -58,7 +58,7 @@ func GetBadNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []lib.Name
 
 		if hasOwnerAnnotation(kn, lib.Cfg.AnnotationFormatForEmails) == false &&
 			hasOwnerAnnotation(kn, lib.Cfg.AnnotationFormatForChatIds) == false &&
-			rules.IsNotIgnoredViolation(kn.Name, "namespace", violations.NO_OWNER_ANNOTATION_TYPE) {
+			rules.IsNotIgnoredViolation(kn.Name, "namespace", kn.Name, violations.NO_OWNER_ANNOTATION_TYPE) {
 			jsonString, err := json.Marshal(kn.Annotations)
 			if err != nil {
 				lib.Log.Error("Can not convert annotation to a valid json ", err)
@@ -110,8 +110,7 @@ func verifyRequiredNamespaces(theNamespaces []v1.Namespace) []lib.Namespace {
 
 		found := false
 		for _, kn := range theNamespaces {
-			if rules.Exact(kn.ObjectMeta.Namespace, rule[0]) && rules.Exact("namespace", rule[1]) &&
-				rules.Exact(kn.ObjectMeta.Name, rule[2]) {
+			if rules.Exact(kn.ObjectMeta.Name, rule[3]) {
 				found = true
 				break
 			}
@@ -119,10 +118,10 @@ func verifyRequiredNamespaces(theNamespaces []v1.Namespace) []lib.Namespace {
 
 		if !found {
 			ns := lib.Namespace{}
-			ns.Name = rule[2]
+			ns.Name = rule[3]
 			ns.Cluster = lib.Cfg.ClusterName
 			ns.Namespace = ns.Name
-			ns.ViolatableEntity.Violations = append(ns.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_NAMESPACES_TYPE})
+			ns.ViolatableEntity.Violations = append(ns.ViolatableEntity.Violations, violations.Violation{Source: rule[3], Type: violations.REQUIRED_NAMESPACES_TYPE})
 			badNamespaces = append(badNamespaces, ns)
 		}
 	}
