@@ -44,7 +44,7 @@ func GetBadDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToKafka bool) []lib
 
 	cacheAllImages(true)
 
-	allBadDaemonSets = append(allBadDaemonSets, verifyRequiredDaemonSets(theDaemonSets)...)
+	allBadDaemonSets = append(allBadDaemonSets, verifyRequiredDaemonSets(theDaemonSets, sendToKafka)...)
 
 	for _, kd := range theDaemonSets {
 
@@ -92,11 +92,11 @@ func isIgnoredDaemonSet(daemonSetName string) bool {
 	return false
 }
 
-func verifyRequiredDaemonSets(theDaemonSets []v1beta1.DaemonSet) []lib.DaemonSet {
+func verifyRequiredDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToKafka bool) []lib.DaemonSet {
 	entityType := "daemonset"
 	badDaemonSets := []lib.DaemonSet{}
 
-	for _, ns := range GetAllNamespacesFromApi() {
+	for _, ns := range GetAllNamespaceFromApi() {
 		if rules.IsNotIgnoredViolation(ns.Name, entityType, "*", violations.REQUIRED_ENTITIES_TYPE) {
 			for _, a := range lib.Cfg.RequiredEntities {
 				rule := strings.Split(a, ":")
@@ -108,7 +108,7 @@ func verifyRequiredDaemonSets(theDaemonSets []v1beta1.DaemonSet) []lib.DaemonSet
 
 				found := false
 				for _, kd := range theDaemonSets {
-					if rules.Exact(kd.ObjectMeta.Namespace, rule[0]) && rules.Exact(kd.ObjectMeta.Name, rule[3]) {
+					if rules.Exact(kd.ObjectMeta.Namespace, rule[0]) && rules.Exact(kd.ObjectMeta.Name, rule[2]) {
 						found = true
 						break
 					}
@@ -116,11 +116,19 @@ func verifyRequiredDaemonSets(theDaemonSets []v1beta1.DaemonSet) []lib.DaemonSet
 
 				if !found {
 					ds := lib.DaemonSet{}
-					ds.Name = rule[3]
+					ds.Name = rule[2]
 					ds.Cluster = lib.Cfg.ClusterName
 					ds.Namespace = ns.Name
-					ds.ViolatableEntity.Violations = append(ds.ViolatableEntity.Violations, violations.Violation{Source: rule[3], Type: violations.REQUIRED_DAEMONSETS_TYPE})
+					ds.ViolatableEntity.Violations = append(ds.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_DAEMONSETS_TYPE})
 					badDaemonSets = append(badDaemonSets, ds)
+
+					if sendToKafka {
+						lib.Log.Debug("Sending ", ds.Name, " to kafka")
+						err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.DAEMONSET_MESSAGE, ds)
+						if err != nil {
+							panic(err)
+						}
+					}
 				}
 			}
 		}

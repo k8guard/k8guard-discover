@@ -180,7 +180,7 @@ func startHttpServer() {
 	r.Get("/namespaces", func(w http.ResponseWriter, r *http.Request) {
 		cachedBadNamespaces, err := Memcached.Get("cached_bad_namespaces")
 		if err != nil {
-			response, _ := json.Marshal(discover.GetBadNamespaces(discover.GetAllNamespacesFromApi(), false))
+			response, _ := json.Marshal(discover.GetBadNamespaces(discover.GetAllNamespaceFromApi(), false))
 			Memcached.Set(&memcache.Item{Key: "cached_bad_namespaces", Expiration: 300, Value: []byte(response)})
 			cachedBadNamespaces, err = Memcached.Get("cached_bad_namespaces")
 			if err != nil {

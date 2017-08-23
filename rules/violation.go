@@ -46,10 +46,14 @@ func IsValueMatchExactRule(namespace string, entityType string, entityName strin
 
 		if len(rule) == 1 {
 			// a length of 1 is for backwards compatibility, and is a global config (across all namespaces and entity types
-			return Exact(value, rule[0]), nil
+			if Exact(value, ignoredV) {
+				return true, nil
+			}
 		} else if len(rule) == 4 {
 			// denotes namespace, entity and value
-			return Exact(namespace, rule[0]) && Exact(entityType, rule[1]) && Exact(entityName, rule[2]) && Exact(value, rule[3]), nil
+			if Exact(namespace, rule[0]) && Exact(entityType, rule[1]) && Exact(entityName, rule[2]) && Exact(value, rule[3]) {
+				return true, nil
+			}
 		} else {
 			return false, fmt.Errorf("Incorrect format for violation rule: %v", violationConfig)
 		}
@@ -63,10 +67,14 @@ func IsValueMatchLikeRule(namespace string, entityType string, entityName string
 
 		if len(rule) == 1 {
 			// a length of 1 is for backwards compatibility, and is a global config (across all namespaces and entity types
-			return Like(value, rule[0]), nil
+			if Like(value, rule[0]) {
+				return true, nil
+			}
 		} else if len(rule) == 4 {
 			// denotes namespace, entity and value
-			return Exact(namespace, rule[0]) && Exact(entityType, rule[1]) && Exact(entityName, rule[2]) && Like(value, rule[3]), nil
+			if Exact(namespace, rule[0]) && Exact(entityType, rule[1]) && Exact(entityName, rule[2]) && Like(value, rule[3]) {
+				return true, nil
+			}
 		} else {
 			return false, fmt.Errorf("Incorrect format for violation rule: %v", violationConfig)
 		}
@@ -80,10 +88,14 @@ func IsValueMatchContainsRule(namespace string, entityType string, entityName st
 
 		if len(rule) == 1 {
 			// a length of 1 is for backwards compatibility, and is a global config (across all namespaces and entity types
-			return Contains(value, rule[0]), nil
+			if Contains(value, rule[0]) {
+				return true, nil
+			}
 		} else if len(rule) == 4 {
 			// denotes namespace, entity and value
-			return Exact(namespace, rule[0]) && Exact(entityType, rule[1]) && Exact(entityName, rule[2]) && Contains(value, rule[3]), nil
+			if Exact(namespace, rule[0]) && Exact(entityType, rule[1]) && Exact(entityName, rule[2]) && Contains(value, rule[3]) {
+				return true, nil
+			}
 		} else {
 			return false, fmt.Errorf("Incorrect format for violation rule: %v", violationConfig)
 		}

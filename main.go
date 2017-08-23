@@ -41,7 +41,7 @@ func main() {
 		discover.TestKafkaWithTestMessage()
 
 		var waitGroup sync.WaitGroup
-		waitGroup.Add(5)
+		waitGroup.Add(7)
 		lib.Log.Info("Starting in Kafka Mode")
 		lib.Log.Info("Version: ", Version)
 		lib.Log.Info("BuildNumber: ", Build)
@@ -51,8 +51,13 @@ func main() {
 		}
 		go func() {
 			defer waitGroup.Done()
+			discover.GetBadNamespaces(discover.GetAllNamespaceFromApi(), true)
+		}()
+		go func() {
+			defer waitGroup.Done()
 			discover.GetBadDeploys(discover.GetAllDeployFromApi(), true)
 		}()
+
 		go func() {
 			defer waitGroup.Done()
 			discover.GetBadDaemonSets(discover.GetAllDaemonSetFromApi(), true)
