@@ -42,7 +42,7 @@ func GetBadDeploys(theDeploys []v1beta1.Deployment, sendToKafka bool) []lib.Depl
 
 	cacheAllImages(true)
 
-	allBadDeploys = append(allBadDeploys, verifyRequiredDeployments(theDeploys)...)
+	allBadDeploys = append(allBadDeploys, verifyRequiredDeployments(theDeploys, sendToKafka)...)
 
 	for _, kd := range theDeploys {
 		if isIgnoredNamespace(kd.Namespace) == true || isIgnoredDeployment(kd.ObjectMeta.Name) == true {
@@ -100,11 +100,11 @@ func isIgnoredDeployment(deploymentName string) bool {
 	return false
 }
 
-func verifyRequiredDeployments(theDeployments []v1beta1.Deployment) []lib.Deployment {
+func verifyRequiredDeployments(theDeployments []v1beta1.Deployment, sendToKafka bool) []lib.Deployment {
 	entityType := "deployment"
 	badDeployments := []lib.Deployment{}
 
-	for _, ns := range GetAllNamespacesFromApi() {
+	for _, ns := range GetAllNamespaceFromApi() {
 		if rules.IsNotIgnoredViolation(ns.Name, entityType, "*", violations.REQUIRED_ENTITIES_TYPE) {
 			for _, a := range lib.Cfg.RequiredEntities {
 				rule := strings.Split(a, ":")
@@ -123,12 +123,20 @@ func verifyRequiredDeployments(theDeployments []v1beta1.Deployment) []lib.Deploy
 				}
 
 				if !found {
-					ds := lib.Deployment{}
-					ds.Name = rule[2]
-					ds.Cluster = lib.Cfg.ClusterName
-					ds.Namespace = ns.Name
-					ds.ViolatableEntity.Violations = append(ds.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_DEPLOYMENTS_TYPE})
-					badDeployments = append(badDeployments, ds)
+					d := lib.Deployment{}
+					d.Name = rule[2]
+					d.Cluster = lib.Cfg.ClusterName
+					d.Namespace = ns.Name
+					d.ViolatableEntity.Violations = append(d.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_DEPLOYMENTS_TYPE})
+					badDeployments = append(badDeployments, d)
+
+					if sendToKafka {
+						lib.Log.Debug("Sending ", d.Name, " to kafka")
+						err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.DEPLOYMENT_MESSAGE, d)
+						if err != nil {
+							panic(err)
+						}
+					}
 				}
 			}
 		}
