@@ -25,6 +25,11 @@ func GetAllJobFromApi() []batch.Job {
 }
 
 func GetAllCronJobFromApi() []v2alpha1.CronJob {
+	if lib.Cfg.IncludeAlpha == false {
+		lib.Log.Debug("Ignoring GetAllCronJobFromApi as alpha features are not enabled.")
+		return []v2alpha1.CronJob{}
+	}
+
 	cronjobs, err := Clientset.BatchV2alpha1().CronJobs(lib.Cfg.Namespace).List(metav1.ListOptions{})
 
 	if err != nil {
