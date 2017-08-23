@@ -108,7 +108,7 @@ func verifyRequiredDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToKafka boo
 
 				found := false
 				for _, kd := range theDaemonSets {
-					if rules.Exact(kd.ObjectMeta.Namespace, rule[0]) && rules.Exact(kd.ObjectMeta.Name, rule[3]) {
+					if rules.Exact(kd.ObjectMeta.Namespace, rule[0]) && rules.Exact(kd.ObjectMeta.Name, rule[2]) {
 						found = true
 						break
 					}
@@ -116,10 +116,10 @@ func verifyRequiredDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToKafka boo
 
 				if !found {
 					ds := lib.DaemonSet{}
-					ds.Name = rule[3]
+					ds.Name = rule[2]
 					ds.Cluster = lib.Cfg.ClusterName
 					ds.Namespace = ns.Name
-					ds.ViolatableEntity.Violations = append(ds.ViolatableEntity.Violations, violations.Violation{Source: rule[3], Type: violations.REQUIRED_DAEMONSETS_TYPE})
+					ds.ViolatableEntity.Violations = append(ds.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_DAEMONSETS_TYPE})
 					badDaemonSets = append(badDaemonSets, ds)
 
 					if sendToKafka {

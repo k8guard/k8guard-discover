@@ -116,7 +116,7 @@ func verifyRequiredDeployments(theDeployments []v1beta1.Deployment, sendToKafka 
 
 				found := false
 				for _, kd := range theDeployments {
-					if rules.Exact(kd.ObjectMeta.Namespace, rule[0]) && rules.Exact(kd.ObjectMeta.Name, rule[3]) {
+					if rules.Exact(kd.ObjectMeta.Namespace, rule[0]) && rules.Exact(kd.ObjectMeta.Name, rule[2]) {
 						found = true
 						break
 					}
@@ -124,10 +124,10 @@ func verifyRequiredDeployments(theDeployments []v1beta1.Deployment, sendToKafka 
 
 				if !found {
 					d := lib.Deployment{}
-					d.Name = rule[3]
+					d.Name = rule[2]
 					d.Cluster = lib.Cfg.ClusterName
 					d.Namespace = ns.Name
-					d.ViolatableEntity.Violations = append(d.ViolatableEntity.Violations, violations.Violation{Source: rule[3], Type: violations.REQUIRED_DEPLOYMENTS_TYPE})
+					d.ViolatableEntity.Violations = append(d.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_DEPLOYMENTS_TYPE})
 					badDeployments = append(badDeployments, d)
 
 					if sendToKafka {
