@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/k8guard/k8guard-discover/caching"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -251,11 +251,11 @@ func PromMetricsHandler(w http.ResponseWriter, r *http.Request) {
 		BAD_JOB_COUNT, BAD_JOB_WO_OWNER_COUNT, BAD_CRONJOB_COUNT,
 	}
 	for _, i := range myList {
-		count, err := Memcached.Get(i)
+		count, err := caching.GetAsInt(i)
 		if err != nil {
-			count = &memcache.Item{Key: i, Value: []byte(strconv.Itoa(0))}
+			count = 0
 		}
-		parsedCount, _ := strconv.ParseFloat(string(count.Value), 64)
+		parsedCount, _ := strconv.ParseFloat(string(count), 64)
 
 		switch i {
 		case ALL_NAMESPACE_COUNT:

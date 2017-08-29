@@ -4,14 +4,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
 	"github.com/pressly/chi/render"
 
-	"encoding/json"
 	"text/template"
 
+	"github.com/k8guard/k8guard-discover/caching"
 	"github.com/k8guard/k8guard-discover/discover"
 	"github.com/k8guard/k8guard-discover/metrics"
 	"github.com/k8guard/k8guard-discover/templates"
@@ -77,130 +76,126 @@ func startHttpServer() {
 	})
 
 	r.Get("/deploys", func(w http.ResponseWriter, r *http.Request) {
-		cachedBadDeploys, err := Memcached.Get("cached_bad_deploys")
+		cachedBadDeploys, err := caching.GetAsJson("cached_bad_deploys")
 		if err != nil {
-			response, _ := json.Marshal(discover.GetBadDeploys(discover.GetAllDeployFromApi(), false))
-			Memcached.Set(&memcache.Item{Key: "cached_bad_deploys", Expiration: 300, Value: []byte(response)})
-			cachedBadDeploys, err = Memcached.Get("cached_bad_deploys")
+			caching.SetAsJson("cached_bad_deploys", discover.GetBadDeploys(discover.GetAllDeployFromApi(), false), 300*time.Second)
+			cachedBadDeploys, err = caching.GetAsJson("cached_bad_deploys")
 			if err != nil {
 				panic(err)
 			}
 
-			renderJSONString(w, r, cachedBadDeploys.Value)
+			renderJSONString(w, r, cachedBadDeploys)
 		} else {
-			renderJSONString(w, r, cachedBadDeploys.Value)
+			renderJSONString(w, r, cachedBadDeploys)
 		}
 
 	})
 
 	r.Get("/daemonsets", func(w http.ResponseWriter, r *http.Request) {
-		cachedBadDaemonSets, err := Memcached.Get("cached_bad_daemonsets")
+		cachedBadDaemonSets, err := caching.GetAsJson("cached_bad_daemonsets")
 		if err != nil {
-			response, _ := json.Marshal(discover.GetBadDaemonSets(discover.GetAllDaemonSetFromApi(), false))
-			Memcached.Set(&memcache.Item{Key: "cached_bad_daemonsets", Expiration: 300, Value: []byte(response)})
-			cachedBadDaemonSets, err = Memcached.Get("cached_bad_daemonsets")
+			caching.SetAsJson("cached_bad_daemonsets", discover.GetBadDaemonSets(discover.GetAllDaemonSetFromApi(), false), 300*time.Second)
+			cachedBadDaemonSets, err = caching.GetAsJson("cached_bad_daemonsets")
 			if err != nil {
 				panic(err)
 			}
 
-			renderJSONString(w, r, cachedBadDaemonSets.Value)
+			renderJSONString(w, r, cachedBadDaemonSets)
 		} else {
-			renderJSONString(w, r, cachedBadDaemonSets.Value)
+			renderJSONString(w, r, cachedBadDaemonSets)
 		}
 
 	})
 
 	// Pods without owner
 	r.Get("/podswo", func(w http.ResponseWriter, r *http.Request) {
-		cachedBadPods, err := Memcached.Get("cached_bad_pods_wo")
+		cachedBadPods, err := caching.GetAsJson("cached_bad_pods_wo")
 		if err != nil {
-			response, _ := json.Marshal(discover.GetBadPods(discover.GetAllPodsFromApi(), false))
-			Memcached.Set(&memcache.Item{Key: "cached_bad_pods_wo", Expiration: 300, Value: []byte(response)})
-			cachedBadPods, err = Memcached.Get("cached_bad_pods_wo")
+			caching.SetAsJson("cached_bad_pods_wo", discover.GetBadPods(discover.GetAllPodsFromApi(), false), 300*time.Second)
+			cachedBadPods, err = caching.GetAsJson("cached_bad_pods_wo")
 
 			if err != nil {
 				panic(err)
 			}
 
-			renderJSONString(w, r, cachedBadPods.Value)
+			renderJSONString(w, r, cachedBadPods)
 		} else {
-			renderJSONString(w, r, cachedBadPods.Value)
+			renderJSONString(w, r, cachedBadPods)
 		}
 
 	})
 
 	r.Get("/ingresses", func(w http.ResponseWriter, r *http.Request) {
-		cachedBadIngresses, err := Memcached.Get("cached_bad_ingresses")
+		cachedBadIngresses, err := caching.GetAsJson("cached_bad_ingresses")
 		if err != nil {
-			response, _ := json.Marshal(discover.GetBadIngresses(discover.GetAllIngressFromApi(), false))
-			Memcached.Set(&memcache.Item{Key: "cached_bad_ingresses", Expiration: 300, Value: []byte(response)})
-			cachedBadIngresses, err = Memcached.Get("cached_bad_ingresses")
+			caching.SetAsJson("cached_bad_ingresses", discover.GetBadIngresses(discover.GetAllIngressFromApi(), false), 300*time.Second)
+			cachedBadIngresses, err = caching.GetAsJson("cached_bad_ingresses")
 			if err != nil {
 				panic(err)
 			}
-			renderJSONString(w, r, cachedBadIngresses.Value)
+			renderJSONString(w, r, cachedBadIngresses)
 		} else {
-			renderJSONString(w, r, cachedBadIngresses.Value)
+			renderJSONString(w, r, cachedBadIngresses)
 		}
 
 	})
 
 	r.Get("/jobs", func(w http.ResponseWriter, r *http.Request) {
-		cachedBadJobs, err := Memcached.Get("cached_bad_jobs")
+		cachedBadJobs, err := caching.GetAsJson("cached_bad_jobs")
 		if err != nil {
-			response, _ := json.Marshal(discover.GetBadJobs(discover.GetAllJobFromApi(), false))
-			Memcached.Set(&memcache.Item{Key: "cached_bad_jobs", Expiration: 300, Value: []byte(response)})
-			cachedBadJobs, err = Memcached.Get("cached_bad_jobs")
+			caching.SetAsJson("cached_bad_jobs", discover.GetBadJobs(discover.GetAllJobFromApi(), false), 300*time.Second)
+			cachedBadJobs, err = caching.GetAsJson("cached_bad_jobs")
 			if err != nil {
 				panic(err)
 			}
-			renderJSONString(w, r, cachedBadJobs.Value)
+			renderJSONString(w, r, cachedBadJobs)
 		} else {
-			renderJSONString(w, r, cachedBadJobs.Value)
+			renderJSONString(w, r, cachedBadJobs)
 		}
 
 	})
 
 	r.Get("/cronjobs", func(w http.ResponseWriter, r *http.Request) {
-		cachedBadCronJobs, err := Memcached.Get("cached_bad_cronjobs")
+		cachedBadCronJobs, err := caching.GetAsJson("cached_bad_cronjobs")
 		if err != nil {
-			response, _ := json.Marshal(discover.GetBadCronJobs(discover.GetAllCronJobFromApi(), false))
-			Memcached.Set(&memcache.Item{Key: "cached_bad_cronjobs", Expiration: 300, Value: []byte(response)})
-			cachedBadCronJobs, err = Memcached.Get("cached_bad_cronjobs")
+			caching.SetAsJson("cached_bad_cronjobs", discover.GetBadCronJobs(discover.GetAllCronJobFromApi(), false), 300*time.Second)
+			cachedBadCronJobs, err = caching.GetAsJson("cached_bad_cronjobs")
 			if err != nil {
 				panic(err)
 			}
-			renderJSONString(w, r, cachedBadCronJobs.Value)
+			renderJSONString(w, r, cachedBadCronJobs)
 		} else {
-			renderJSONString(w, r, cachedBadCronJobs.Value)
+			renderJSONString(w, r, cachedBadCronJobs)
 		}
 
 	})
 
 	r.Get("/namespaces", func(w http.ResponseWriter, r *http.Request) {
-		cachedBadNamespaces, err := Memcached.Get("cached_bad_namespaces")
-		if err != nil {
-			response, _ := json.Marshal(discover.GetBadNamespaces(discover.GetAllNamespaceFromApi(), false))
-			Memcached.Set(&memcache.Item{Key: "cached_bad_namespaces", Expiration: 300, Value: []byte(response)})
-			cachedBadNamespaces, err = Memcached.Get("cached_bad_namespaces")
+		cachedBadNamespaces, err := caching.GetAsJson("cached_bad_namespaces")
+		lib.Log.Debugf("cachedBadNamespaces: %v", cachedBadNamespaces)
+		if cachedBadNamespaces == nil || err != nil {
+			caching.SetAsJson("cached_bad_namespaces", discover.GetBadNamespaces(discover.GetAllNamespaceFromApi(), false), 300*time.Second)
+			cachedBadNamespaces, err = caching.GetAsJson("cached_bad_namespaces")
 			if err != nil {
 				panic(err)
 			}
 
-			renderJSONString(w, r, cachedBadNamespaces.Value)
+			renderJSONString(w, r, cachedBadNamespaces)
 		} else {
-			renderJSONString(w, r, cachedBadNamespaces.Value)
+			renderJSONString(w, r, cachedBadNamespaces)
 		}
 
 	})
 
 	http.ListenAndServe(":3000", r)
 }
-func renderJSONString(w http.ResponseWriter, r *http.Request, b []byte) {
-	var objmap []*json.RawMessage
-	err := json.Unmarshal(b, &objmap)
-	if err != nil {
-		panic(err)
-	}
-	render.JSON(w, r, objmap)
+
+// func renderJSONString(w http.ResponseWriter, r *http.Request, b []byte) {
+func renderJSONString(w http.ResponseWriter, r *http.Request, obj interface{}) {
+	// var objmap []*json.RawMessage
+	// err := json.Unmarshal(b, &objmap)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	render.JSON(w, r, obj)
 }

@@ -2,11 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"sync"
 
-	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/k8guard/k8guard-discover/caching"
 	"github.com/k8guard/k8guard-discover/discover"
+	"github.com/k8guard/k8guard-discover/messaging"
 	"github.com/k8guard/k8guard-discover/metrics"
 	lib "github.com/k8guard/k8guardlibs"
 )
@@ -16,33 +16,28 @@ var (
 	Build   string
 )
 
-var Memcached *memcache.Client
-
-func init() {
-	Memcached = memcache.New(fmt.Sprintf("%s:11211", lib.Cfg.MemCachedHostname))
-
-}
-
 var err error
 
 func init() {
 	metrics.PromRegister()
-
+	caching.InitCache()
 }
 
 func main() {
-	defer discover.KafkaProducer.Close()
 
-	kafkaMode := flag.Bool("kmode", false, "messaging mode, no router")
+	messagingMode := flag.Bool("kmode", false, "messaging mode, no router")
 	flag.Parse()
 
-	if *kafkaMode {
-		// test if kafka is there before making api calls
-		discover.TestKafkaWithTestMessage()
+	if *messagingMode {
+		defer messaging.CloseBroker()
+		messaging.InitBroker()
+
+		// test if broker is there before making api calls
+		messaging.TestBrokerWithTestMessage()
 
 		var waitGroup sync.WaitGroup
 		waitGroup.Add(7)
-		lib.Log.Info("Starting in Kafka Mode")
+		lib.Log.Infof("Starting in message mode using %s as broker", lib.Cfg.MessageBroker)
 		lib.Log.Info("Version: ", Version)
 		lib.Log.Info("BuildNumber: ", Build)
 

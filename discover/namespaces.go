@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/k8guard/k8guard-discover/messaging"
 	"github.com/k8guard/k8guard-discover/metrics"
 	"github.com/k8guard/k8guard-discover/rules"
 	lib "github.com/k8guard/k8guardlibs"
-	"github.com/k8guard/k8guardlibs/messaging/kafka"
+	"github.com/k8guard/k8guardlibs/messaging/types"
 	"github.com/k8guard/k8guardlibs/violations"
 	"github.com/prometheus/client_golang/prometheus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,13 +39,13 @@ func GetAllNamespaceFromApi() []v1.Namespace {
 	return namespaceList.Items
 }
 
-func GetBadNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []lib.Namespace {
+func GetBadNamespaces(theNamespaces []v1.Namespace, sendToBroker bool) []lib.Namespace {
 	timer := prometheus.NewTimer(prometheus.ObserverFunc(metrics.FNGetBadNamespaces.Set))
 	defer timer.ObserveDuration()
 
 	allBadNamespaces := []lib.Namespace{}
 
-	allBadNamespaces = append(allBadNamespaces, verifyRequiredNamespaces(theNamespaces, sendToKafka)...)
+	allBadNamespaces = append(allBadNamespaces, verifyRequiredNamespaces(theNamespaces, sendToBroker)...)
 
 	for _, kn := range theNamespaces {
 		if isIgnoredNamespace(kn.Namespace) == true {
@@ -73,15 +74,10 @@ func GetBadNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []lib.Name
 
 		if len(n.ViolatableEntity.Violations) > 0 {
 			allBadNamespaces = append(allBadNamespaces, n)
-			if sendToKafka {
-				lib.Log.Debug("Sending ", n.Name, " to kafka")
-				err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.NAMESPACE_MESSAGE, n)
-				if err != nil {
-					panic(err)
-				}
+			if sendToBroker {
+				messaging.SendData(types.NAMESPACE_MESSAGE, n.Name, n)
 			}
 		}
-
 	}
 	metrics.Update(metrics.BAD_NAMESPACE_COUNT, len(allBadNamespaces))
 	return allBadNamespaces
@@ -98,7 +94,7 @@ func hasOwnerAnnotation(namespace v1.Namespace, annotationKind string) bool {
 	return false
 }
 
-func verifyRequiredNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []lib.Namespace {
+func verifyRequiredNamespaces(theNamespaces []v1.Namespace, sendToBroker bool) []lib.Namespace {
 	badNamespaces := []lib.Namespace{}
 
 	for _, a := range lib.Cfg.RequiredEntities {
@@ -125,12 +121,8 @@ func verifyRequiredNamespaces(theNamespaces []v1.Namespace, sendToKafka bool) []
 			ns.ViolatableEntity.Violations = append(ns.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_NAMESPACES_TYPE})
 			badNamespaces = append(badNamespaces, ns)
 
-			if sendToKafka {
-				lib.Log.Debug("Sending ", ns.Name, " to kafka")
-				err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.NAMESPACE_MESSAGE, ns)
-				if err != nil {
-					panic(err)
-				}
+			if sendToBroker {
+				messaging.SendData(types.NAMESPACE_MESSAGE, ns.Name, ns)
 			}
 		}
 	}

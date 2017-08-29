@@ -5,10 +5,11 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/k8guard/k8guard-discover/messaging"
 	"github.com/k8guard/k8guard-discover/metrics"
 	"github.com/k8guard/k8guard-discover/rules"
 	lib "github.com/k8guard/k8guardlibs"
-	"github.com/k8guard/k8guardlibs/messaging/kafka"
+	"github.com/k8guard/k8guardlibs/messaging/types"
 	"github.com/k8guard/k8guardlibs/violations"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/api/v1"
@@ -35,7 +36,7 @@ func GetAllPodsFromApi() []v1.Pod {
 	return pods.Items
 }
 
-func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
+func GetBadPods(allPods []v1.Pod, sendToBroker bool) []lib.Pod {
 	timer := prometheus.NewTimer(prometheus.ObserverFunc(metrics.FNGetBadPods.Set))
 	defer timer.ObserveDuration()
 
@@ -68,19 +69,12 @@ func GetBadPods(allPods []v1.Pod, sendToKafka bool) []lib.Pod {
 		GetBadContainers(kp.Namespace, "pod", kp.Spec, &p.ViolatableEntity)
 
 		if len(p.Violations) > 0 {
-
 			badPodsCounter++
 			allBadPodsWitoutOwner = append(allBadPodsWitoutOwner, p)
-			if sendToKafka {
-				lib.Log.Debug("Sending ", p.Name, " to kafka")
-				err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.POD_MESSAGE, p)
-				if err != nil {
-					panic(err)
-				}
+			if sendToBroker {
+				messaging.SendData(types.POD_MESSAGE, p.Name, p)
 			}
-
 		}
-
 	}
 
 	metrics.Update(metrics.BAD_POD_COUNT, int(badPodsCounter))

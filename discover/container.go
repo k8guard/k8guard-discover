@@ -2,8 +2,8 @@ package discover
 
 import (
 	"fmt"
-	"strconv"
 
+	"github.com/k8guard/k8guard-discover/caching"
 	"github.com/k8guard/k8guard-discover/rules"
 	lib "github.com/k8guard/k8guardlibs"
 	"github.com/k8guard/k8guardlibs/violations"
@@ -11,14 +11,8 @@ import (
 )
 
 func getContainerImageSize(imageName string) int64 {
-	size, err := Memcached.Get(fmt.Sprintf("image_%s", imageName))
-	// no error means found value
-	if err == nil {
-		mySize := string(size.Value)
-		d, _ := strconv.ParseInt(mySize, 10, 64)
-		return d
-	}
-	return -1
+	size, _ := caching.GetAsInt(fmt.Sprintf("image_%s", imageName))
+	return size
 }
 
 //GetBadContainers Gets Containers with invalid size, invalid repo, or cababilities/privileged

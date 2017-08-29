@@ -5,10 +5,11 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/k8guard/k8guard-discover/messaging"
 	"github.com/k8guard/k8guard-discover/metrics"
 	"github.com/k8guard/k8guard-discover/rules"
 	lib "github.com/k8guard/k8guardlibs"
-	"github.com/k8guard/k8guardlibs/messaging/kafka"
+	"github.com/k8guard/k8guardlibs/messaging/types"
 	"github.com/k8guard/k8guardlibs/violations"
 	"github.com/prometheus/client_golang/prometheus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -34,7 +35,7 @@ func GetAllDeployFromApi() []v1beta1.Deployment {
 	return deploys.Items
 }
 
-func GetBadDeploys(theDeploys []v1beta1.Deployment, sendToKafka bool) []lib.Deployment {
+func GetBadDeploys(theDeploys []v1beta1.Deployment, sendToBroker bool) []lib.Deployment {
 	timer := prometheus.NewTimer(prometheus.ObserverFunc(metrics.FNGetBadDeploys.Set))
 	defer timer.ObserveDuration()
 
@@ -42,7 +43,7 @@ func GetBadDeploys(theDeploys []v1beta1.Deployment, sendToKafka bool) []lib.Depl
 
 	cacheAllImages(true)
 
-	allBadDeploys = append(allBadDeploys, verifyRequiredDeployments(theDeploys, sendToKafka)...)
+	allBadDeploys = append(allBadDeploys, verifyRequiredDeployments(theDeploys, sendToBroker)...)
 
 	for _, kd := range theDeploys {
 		if isIgnoredNamespace(kd.Namespace) == true || isIgnoredDeployment(kd.ObjectMeta.Name) == true {
@@ -70,12 +71,8 @@ func GetBadDeploys(theDeploys []v1beta1.Deployment, sendToKafka bool) []lib.Depl
 
 		if len(d.ViolatableEntity.Violations) > 0 {
 			allBadDeploys = append(allBadDeploys, d)
-			if sendToKafka {
-				lib.Log.Debug("Sending ", d.Name, " to kafka")
-				err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.DEPLOYMENT_MESSAGE, d)
-				if err != nil {
-					panic(err)
-				}
+			if sendToBroker {
+				messaging.SendData(types.DEPLOYMENT_MESSAGE, d.Name, d)
 			}
 		}
 
@@ -100,7 +97,7 @@ func isIgnoredDeployment(deploymentName string) bool {
 	return false
 }
 
-func verifyRequiredDeployments(theDeployments []v1beta1.Deployment, sendToKafka bool) []lib.Deployment {
+func verifyRequiredDeployments(theDeployments []v1beta1.Deployment, sendToBroker bool) []lib.Deployment {
 	entityType := "deployment"
 	badDeployments := []lib.Deployment{}
 
@@ -130,12 +127,8 @@ func verifyRequiredDeployments(theDeployments []v1beta1.Deployment, sendToKafka 
 					d.ViolatableEntity.Violations = append(d.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_DEPLOYMENTS_TYPE})
 					badDeployments = append(badDeployments, d)
 
-					if sendToKafka {
-						lib.Log.Debug("Sending ", d.Name, " to kafka")
-						err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.DEPLOYMENT_MESSAGE, d)
-						if err != nil {
-							panic(err)
-						}
+					if sendToBroker {
+						messaging.SendData(types.DEPLOYMENT_MESSAGE, d.Name, d)
 					}
 				}
 			}

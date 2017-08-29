@@ -5,11 +5,12 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/k8guard/k8guard-discover/messaging"
 	"github.com/k8guard/k8guard-discover/rules"
 
 	"github.com/k8guard/k8guard-discover/metrics"
 	lib "github.com/k8guard/k8guardlibs"
-	"github.com/k8guard/k8guardlibs/messaging/kafka"
+	"github.com/k8guard/k8guardlibs/messaging/types"
 	"github.com/k8guard/k8guardlibs/violations"
 	"github.com/prometheus/client_golang/prometheus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,7 +37,7 @@ func GetAllDaemonSetFromApi() []v1beta1.DaemonSet {
 	return daemonsets.Items
 }
 
-func GetBadDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToKafka bool) []lib.DaemonSet {
+func GetBadDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToBroker bool) []lib.DaemonSet {
 	timer := prometheus.NewTimer(prometheus.ObserverFunc(metrics.FNGetBadDaemonSets.Set))
 	defer timer.ObserveDuration()
 
@@ -44,7 +45,7 @@ func GetBadDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToKafka bool) []lib
 
 	cacheAllImages(true)
 
-	allBadDaemonSets = append(allBadDaemonSets, verifyRequiredDaemonSets(theDaemonSets, sendToKafka)...)
+	allBadDaemonSets = append(allBadDaemonSets, verifyRequiredDaemonSets(theDaemonSets, sendToBroker)...)
 
 	for _, kd := range theDaemonSets {
 
@@ -69,15 +70,10 @@ func GetBadDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToKafka bool) []lib
 
 		if len(d.ViolatableEntity.Violations) > 0 {
 			allBadDaemonSets = append(allBadDaemonSets, d)
-			if sendToKafka {
-				lib.Log.Debug("Sending ", d.Name, " to kafka")
-				err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.DAEMONSET_MESSAGE, d)
-				if err != nil {
-					panic(err)
-				}
+			if sendToBroker {
+				messaging.SendData(types.DAEMONSET_MESSAGE, d.Name, d)
 			}
 		}
-
 	}
 	metrics.Update(metrics.BAD_DAEMONSET_COUNT, len(allBadDaemonSets))
 	return allBadDaemonSets
@@ -92,7 +88,7 @@ func isIgnoredDaemonSet(daemonSetName string) bool {
 	return false
 }
 
-func verifyRequiredDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToKafka bool) []lib.DaemonSet {
+func verifyRequiredDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToBroker bool) []lib.DaemonSet {
 	entityType := "daemonset"
 	badDaemonSets := []lib.DaemonSet{}
 
@@ -122,12 +118,8 @@ func verifyRequiredDaemonSets(theDaemonSets []v1beta1.DaemonSet, sendToKafka boo
 					ds.ViolatableEntity.Violations = append(ds.ViolatableEntity.Violations, violations.Violation{Source: rule[2], Type: violations.REQUIRED_DAEMONSETS_TYPE})
 					badDaemonSets = append(badDaemonSets, ds)
 
-					if sendToKafka {
-						lib.Log.Debug("Sending ", ds.Name, " to kafka")
-						err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.DAEMONSET_MESSAGE, ds)
-						if err != nil {
-							panic(err)
-						}
+					if sendToBroker {
+						messaging.SendData(types.DAEMONSET_MESSAGE, ds.Name, ds)
 					}
 				}
 			}

@@ -3,10 +3,11 @@ package discover
 import (
 	"strings"
 
+	"github.com/k8guard/k8guard-discover/messaging"
 	"github.com/k8guard/k8guard-discover/metrics"
 	"github.com/k8guard/k8guard-discover/rules"
 	lib "github.com/k8guard/k8guardlibs"
-	"github.com/k8guard/k8guardlibs/messaging/kafka"
+	"github.com/k8guard/k8guardlibs/messaging/types"
 	"github.com/k8guard/k8guardlibs/violations"
 	"github.com/prometheus/client_golang/prometheus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -23,7 +24,7 @@ func GetAllIngressFromApi() []v1beta1.Ingress {
 	return ingresses.Items
 }
 
-func GetBadIngresses(allIngresses []v1beta1.Ingress, sendToKafka bool) []lib.Ingress {
+func GetBadIngresses(allIngresses []v1beta1.Ingress, sendToBroker bool) []lib.Ingress {
 	timer := prometheus.NewTimer(prometheus.ObserverFunc(metrics.FNGetBadIngresses.Set))
 	defer timer.ObserveDuration()
 
@@ -45,14 +46,9 @@ func GetBadIngresses(allIngresses []v1beta1.Ingress, sendToKafka bool) []lib.Ing
 
 		if len(in.Violations) > 0 {
 			allBadIngresses = append(allBadIngresses, in)
-			if sendToKafka {
-				lib.Log.Debug("Sending ", in.Name, " to kafka")
-				err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.INGRESS_MESSAGE, in)
-				if err != nil {
-					panic(err)
-				}
+			if sendToBroker {
+				messaging.SendData(types.INGRESS_MESSAGE, in.Name, in)
 			}
-
 		}
 	}
 
