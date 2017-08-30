@@ -48,7 +48,7 @@ func GetBadNamespaces(theNamespaces []v1.Namespace, sendToBroker bool) []lib.Nam
 	allBadNamespaces = append(allBadNamespaces, verifyRequiredNamespaces(theNamespaces, sendToBroker)...)
 
 	for _, kn := range theNamespaces {
-		if isIgnoredNamespace(kn.Namespace) == true {
+		if isIgnoredNamespace(kn.Name) == true {
 			continue
 		}
 		n := lib.Namespace{}

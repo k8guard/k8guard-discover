@@ -23,7 +23,6 @@ func TestBrokerWithTestMessage() error {
 	err := MessageProducer.SendData(types.TEST_MESSAGE, "Testing")
 	if err != nil {
 		lib.Log.Error("Error trying to send test data to broker ", err)
-		panic(err)
 	}
 	return err
 }
@@ -32,10 +31,19 @@ func SendData(kind types.MessageType, name string, message interface{}) {
 	lib.Log.Debugf("Sending %s: %v to broker", name, message)
 	err := MessageProducer.SendData(kind, message)
 	if err != nil {
-		panic(err)
+		lib.Log.Error("Error trying to send message to broker ", err)
 	}
 }
 
+func InitStatsHandler() {
+	lib.Log.Debug("Initializing stats handler")
+	if MessageProducer == nil {
+		InitBroker()
+	}
+	MessageProducer.InitStatsHandler()
+}
+
 func CloseBroker() {
+	lib.Log.Debug("Closing broker")
 	MessageProducer.Close()
 }

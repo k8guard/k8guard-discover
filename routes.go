@@ -172,7 +172,6 @@ func startHttpServer() {
 
 	r.Get("/namespaces", func(w http.ResponseWriter, r *http.Request) {
 		cachedBadNamespaces, err := caching.GetAsJson("cached_bad_namespaces")
-		lib.Log.Debugf("cachedBadNamespaces: %v", cachedBadNamespaces)
 		if cachedBadNamespaces == nil || err != nil {
 			caching.SetAsJson("cached_bad_namespaces", discover.GetBadNamespaces(discover.GetAllNamespaceFromApi(), false), 300*time.Second)
 			cachedBadNamespaces, err = caching.GetAsJson("cached_bad_namespaces")

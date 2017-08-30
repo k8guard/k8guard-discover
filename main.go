@@ -81,8 +81,12 @@ func main() {
 		waitGroup.Wait()
 
 	} else {
-		startHttpServer()
 
+		go func() {
+			messaging.InitStatsHandler()
+		}()
+
+		startHttpServer()
 	}
 
 }
