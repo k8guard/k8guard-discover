@@ -3,9 +3,10 @@ package discover
 import (
 	"strings"
 
+	"github.com/k8guard/k8guard-discover/messaging"
 	"github.com/k8guard/k8guard-discover/metrics"
 	lib "github.com/k8guard/k8guardlibs"
-	"github.com/k8guard/k8guardlibs/messaging/kafka"
+	"github.com/k8guard/k8guardlibs/messaging/types"
 	"github.com/prometheus/client_golang/prometheus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	batch "k8s.io/client-go/pkg/apis/batch/v1"
@@ -41,7 +42,7 @@ func GetAllCronJobFromApi() []v2alpha1.CronJob {
 	return cronjobs.Items
 }
 
-func GetBadCronJobs(allCronJobs []v2alpha1.CronJob, sendToKafka bool) []lib.CronJob {
+func GetBadCronJobs(allCronJobs []v2alpha1.CronJob, sendToBroker bool) []lib.CronJob {
 	timer := prometheus.NewTimer(prometheus.ObserverFunc(metrics.FNGetBadCronJobs.Set))
 	defer timer.ObserveDuration()
 
@@ -60,28 +61,22 @@ func GetBadCronJobs(allCronJobs []v2alpha1.CronJob, sendToKafka bool) []lib.Cron
 		cj.Name = kcj.Name
 		cj.Cluster = lib.Cfg.ClusterName
 		cj.Namespace = kcj.Namespace
-		getVolumesWithHostPathForAPod(kcj.Spec.JobTemplate.Spec.Template.Spec, &cj.ViolatableEntity)
-		GetBadContainers(kcj.Spec.JobTemplate.Spec.Template.Spec, &cj.ViolatableEntity)
+		getVolumesWithHostPathForAPod(kcj.Name, kcj.Spec.JobTemplate.Spec.Template.Spec, &cj.ViolatableEntity)
+		GetBadContainers(kcj.Namespace, "cronjob", kcj.Spec.JobTemplate.Spec.Template.Spec, &cj.ViolatableEntity)
 
 		if len(cj.Violations) > 0 {
 			allBadCronJobs = append(allBadCronJobs, cj)
-			if sendToKafka {
-				lib.Log.Debug("Sending ", cj.Name, " to kafka")
-				err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.CRONJOB_MESSAGE, cj)
-				if err != nil {
-					panic(err)
-				}
+			if sendToBroker {
+				messaging.SendData(types.CRONJOB_MESSAGE, cj.Name, cj)
 			}
-
 		}
-
 	}
 	metrics.Update(metrics.BAD_CRONJOB_COUNT, len(allBadCronJobs))
 	return allBadCronJobs
 
 }
 
-func GetBadJobs(allJobs []batch.Job, sendToKafka bool) []lib.Job {
+func GetBadJobs(allJobs []batch.Job, sendToBroker bool) []lib.Job {
 	timer := prometheus.NewTimer(prometheus.ObserverFunc(metrics.FNGetBadJobs.Set))
 	defer timer.ObserveDuration()
 
@@ -107,21 +102,16 @@ func GetBadJobs(allJobs []batch.Job, sendToKafka bool) []lib.Job {
 		j.Name = kj.Name
 		j.Cluster = lib.Cfg.ClusterName
 		j.Namespace = kj.Namespace
-		getVolumesWithHostPathForAPod(kj.Spec.Template.Spec, &j.ViolatableEntity)
-		GetBadContainers(kj.Spec.Template.Spec, &j.ViolatableEntity)
+		getVolumesWithHostPathForAPod(kj.Name, kj.Spec.Template.Spec, &j.ViolatableEntity)
+		GetBadContainers(kj.Namespace, "job", kj.Spec.Template.Spec, &j.ViolatableEntity)
 
 		if len(j.Violations) > 0 {
 
 			badJobsCounter += 1
 			allBadJobsWitoutOwner = append(allBadJobsWitoutOwner, j)
-			if sendToKafka {
-				lib.Log.Debug("Sending ", j.Name, " to kafka")
-				err := KafkaProducer.SendData(lib.Cfg.KafkaActionTopic, kafka.JOB_MESSAGE, j)
-				if err != nil {
-					panic(err)
-				}
+			if sendToBroker {
+				messaging.SendData(types.JOB_MESSAGE, j.Name, j)
 			}
-
 		}
 
 	}
