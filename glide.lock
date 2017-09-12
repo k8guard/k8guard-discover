@@ -1,5 +1,5 @@
-hash: d4afde1ffea2884d2f2b948ddaaae445870c47017b7438e16bde97880950076e
-updated: 2017-09-11T16:08:03.671443091-05:00
+hash: f7954169870641e3d8d3373cfa32c6c89cdf3460f30113e96534064a6f03ac6e
+updated: 2017-09-12T09:48:22.46280095-05:00
 imports:
 - name: github.com/adjust/rmq
   version: 99798ba09475383696d53071bd9885ac41694a7b
@@ -79,7 +79,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/k8guard/k8guardlibs
-  version: 720f6cd6c3b33341c3563a35eb213e3d83a89021
+  version: ec959f13f421a6ba3fd8e68ea4e85c71a181cc4e
   repo: https://github.com/k8guard/k8guardlibs.git
   vcs: git
   subpackages:
@@ -161,8 +161,6 @@ imports:
 - name: golang.org/x/net
   version: e90d6d0afc4c315a0d87a568ae68577cc15149a0
   subpackages:
-  - context
-  - context/ctxhttp
   - http2
   - http2/hpack
   - idna
