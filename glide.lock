@@ -1,5 +1,5 @@
-hash: f7954169870641e3d8d3373cfa32c6c89cdf3460f30113e96534064a6f03ac6e
-updated: 2017-09-12T09:48:22.46280095-05:00
+hash: c9d2374a217c551320d3cb938341579eacd1cf239ce78aee1a74c9e0a4ef2d04
+updated: 2017-09-12T16:02:33.190285406-07:00
 imports:
 - name: github.com/adjust/rmq
   version: 99798ba09475383696d53071bd9885ac41694a7b
@@ -65,7 +65,7 @@ imports:
 - name: github.com/golang/glog
   version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - name: github.com/golang/protobuf
-  version: 17ce1425424ab154092bbb43af630bd647f3bb0d
+  version: 0a4f71a498b7c4812f64969510bcb4eca251e33a
   subpackages:
   - proto
 - name: github.com/golang/snappy
@@ -79,7 +79,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/k8guard/k8guardlibs
-  version: ec959f13f421a6ba3fd8e68ea4e85c71a181cc4e
+  version: 8cec16bc4ab2dd3555caa42239d7bf985a7641d5
   repo: https://github.com/k8guard/k8guardlibs.git
   vcs: git
   subpackages:
@@ -129,7 +129,7 @@ imports:
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 2f17f4a9d485bf34b4bfaccc273805040e4f86c8
+  version: 3e6a7635bac6573d43f49f97b47eb9bda195dba8
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
